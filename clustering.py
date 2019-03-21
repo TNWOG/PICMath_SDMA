@@ -84,6 +84,48 @@ def findNextStudent(dataMatrix, clusterMatrix, clusterNumber, studentsToCluster)
             minStudent = potentialNext
     return minStudent
 
+def studentAllocationOrderForClusters(numberOfStudents, numberOfClusters):
+    i=numberOfClusters
+    numberOfRecursions=1
+    while(i<numberOfStudents):
+        i=i**2
+        numberOfRecursions+=1
+    
+    #create sequence for thueMorseGenerator
+    sequence = [0]
+    for i in range(1,numberOfClusters):
+            sequence += [i]
+    
+    return thueMorseGenerator(''.join(str(e) for e in sequence),numberOfRecursions)
+
+# helper function for StudentALlocationOrderForClusters
+# takes in a sequence, so for five teams, a sequence could be 01234
+# number of recursions determines length necessary for student Allocation order string, 
+# and is determined by number of students (string will likely be greater than number of students)
+def thueMorseGenerator(sequence, numberOfRecursions):
+
+    playersLists = [sequence]
+    initialCount = len(sequence)
+
+    index = 0
+    while (numberOfRecursions>1):
+        thisSequence = playersLists[index];
+        thisCount = len(thisSequence);
+        segmentLength = int(thisCount / initialCount);
+        newSequence = "";
+        
+        for n in range(0, initialCount):
+            for i in range(n * segmentLength, thisCount + n * segmentLength):
+                j = i % thisCount;
+                newSequence += thisSequence[j];
+
+        playersLists.append(newSequence);
+        index+=1
+        
+        if (len(playersLists) >= numberOfRecursions):
+            break;
+    return playersLists[-1] #returns last element in list
+
 
 
 #END OF HELPER FUNCTIONS
