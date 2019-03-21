@@ -174,12 +174,11 @@ def calClusterMethod(dataMatrix, numClusters, studentsToCluster):
             i += 1    
     return clusters
 
-
 def SweepClusterMethod(dataMatrix, numClusters):
     clusteredStudents = 0
     numStudents = len(dataMatrix)
-    numStudentsPerCluster = int(numStudents/numClusters) #could also equal bus capacity but would be too large
-
+    numStudentsPerCluster = int(numStudents/numClusters) #could also equal bus capacity but would be too small
+    
     #in case of unclustered students
     while(numStudentsPerCluster*numClusters<numStudents):
         numStudentsPerCluster+=1
@@ -192,24 +191,21 @@ def SweepClusterMethod(dataMatrix, numClusters):
 
     studentIndices = sorted(range(len(angles)), key=lambda k: angles[k]) #sort angles, return sorted student indices array
 
-    currentCluster=0
+    
     sortedStudents=0
+    cluster=0
     
     #initialize numClusters as 2d array
-    clusters = [[]] * numClusters
-    
-    print(clusters)
-    while(currentCluster<numClusters or sortedStudents<numStudents):
-        for unsortedStudents in range(numStudentsPerCluster): 
-            
-            #add students to cluster based on smallest unused angle
-            clusters[currentCluster].append(studentIndices[sortedStudents])
+    clusters = []
+    for cluster in range(numClusters):
+        newCluster = []
+        for studentPerCluster in range(numStudentsPerCluster):
+            newCluster.append(studentIndices[sortedStudents])    
             sortedStudents+=1
-            if(sortedStudents==numStudents):
+            if(sortedStudents==numStudents): 
                 break
-                
-        currentCluster+=1
-    
+        clusters.append(newCluster)
+        
     return clusters
     
 #END OF CLUSTERING FUNCTIONS
