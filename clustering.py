@@ -2,6 +2,7 @@
 import pandas as pd
 import csv
 from copy import deepcopy
+import math
 
 #BEGIN CLUSTERING FUNCTIONS
 
@@ -85,6 +86,57 @@ def findNextStudent(dataMatrix, clusterMatrix, clusterNumber, studentsToCluster)
             minStudent = potentialNext
     return minStudent
 
+def studentAllocationOrderForClusters(numberOfStudents, numberOfClusters):
+    i=numberOfClusters
+    numberOfRecursions=1
+    while(i<numberOfStudents):
+        i=i**2
+        numberOfRecursions+=1
+    
+    #create sequence for thueMorseGenerator
+    sequence = [0]
+    for i in range(1,numberOfClusters):
+            sequence += [i]
+    
+    return thueMorseGenerator(''.join(str(e) for e in sequence),numberOfRecursions)
+
+# helper function for StudentALlocationOrderForClusters
+# takes in a sequence, so for five teams, a sequence could be 01234
+# number of recursions determines length necessary for student Allocation order string, 
+# and is determined by number of students (string will likely be greater than number of students)
+def thueMorseGenerator(sequence, numberOfRecursions):
+
+    playersLists = [sequence]
+    initialCount = len(sequence)
+
+    index = 0
+    while (numberOfRecursions>1):
+        thisSequence = playersLists[index]
+        thisCount = len(thisSequence)
+        segmentLength = int(thisCount / initialCount)
+        newSequence = ""
+        
+        for n in range(0, initialCount):
+            for i in range(n * segmentLength, thisCount + n * segmentLength):
+                j = i % thisCount
+                newSequence += thisSequence[j]
+
+        playersLists.append(newSequence)
+        index+=1
+        
+        if (len(playersLists) >= numberOfRecursions):
+            break
+    return playersLists[-1] #returns last element in list
+
+#helper method for Sweep algorithm - could be better
+def findAnglesFromCenter(geoLocations, origin):
+        
+    angles = []
+    for i in range(len(geoLocations)):
+        #tan(longitude/latitude)
+        angles.append(math.tan((geoLocations[i][0] - origin[0])/ (geoLocations[i][1] - origin[1])))
+        
+    return angles
 
 
 #END OF HELPER FUNCTIONS
@@ -126,7 +178,40 @@ def calClusterMethod(dataMatrix, numClusters, studentsToCluster):
             clusteredStudents += 1
             i += 1    
     return clusters
+
+def SweepClusterMethod(dataMatrix, numClusters):
+    clusteredStudents = 0
+    numStudents = len(dataMatrix)
+    numStudentsPerCluster = int(numStudents/numClusters) #could also equal bus capacity but would be too small
     
+    #in case of unclustered students
+    while(numStudentsPerCluster*numClusters<numStudents):
+        numStudentsPerCluster+=1
+        
+    # hardcoded to the where highway 94 meets 25
+    #                longitude            latitude
+    centerVertex = [-91.93300598086705, 44.907098609311305]
+        
+    angles = findAnglesFromCenter(dataMatrix, centerVertex)
+
+    studentIndices = sorted(range(len(angles)), key=lambda k: angles[k]) #sort angles, return sorted student indices array
+
+    
+    sortedStudents=0
+    cluster=0
+    
+    #initialize numClusters as 2d array
+    clusters = []
+    for cluster in range(numClusters):
+        newCluster = []
+        for studentPerCluster in range(numStudentsPerCluster):
+            newCluster.append(studentIndices[sortedStudents])    
+            sortedStudents+=1
+            if(sortedStudents==numStudents): 
+                break
+        clusters.append(newCluster)
+        
+    return clusters
     
 #END OF CLUSTERING FUNCTIONS
 
