@@ -1,6 +1,7 @@
 #imports
 import pandas as pd
 import csv
+from copy import deepcopy
 
 #BEGIN CLUSTERING FUNCTIONS
 
@@ -70,7 +71,7 @@ def findNextStudent(dataMatrix, clusterMatrix, clusterNumber, studentsToCluster)
             if (unclusteredStudents.count(student) > 0):
                             unclusteredStudents.remove(student)
     #set the minimum total distance to the first student not in a cluster
-    minStudent = unclusteredStudents[0]
+    minStudent = deepcopy(unclusteredStudents[0])
     for x in range(len(clusterMatrix[clusterNumber])):
         minValue += dataMatrix[unclusteredStudents[0].distanceMatrixPosition][clusterMatrix[clusterNumber][x].distanceMatrixPosition]
 
@@ -98,10 +99,14 @@ def calClusterMethod(dataMatrix, numClusters, studentsToCluster):
     #declare the seeds for the clusters and the cluster matrix
     seeds = []
     #find the first seed
-    seeds.append(findStartSeed(dataMatrix, studentsToCluster))
+    seed = deepcopy(findStartSeed(dataMatrix, studentsToCluster))
+    studentsToCluster.remove(seed)
+    seeds.append(seed)
     #find remaining seeds
     while (len(seeds) < numClusters):
-        seeds.append(findNextSeed(dataMatrix, seeds, studentsToCluster))
+        seed = deepcopy(findNextSeed(dataMatrix, seeds, studentsToCluster))
+        studentsToCluster.remove(seed)
+        seeds.append(seed)
     #CLUSTER
     #create empty 2d array that can be appended.
     #set the number of rows to the number of seeds

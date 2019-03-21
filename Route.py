@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+from copy import deepcopy
 class Route:
     #import Student
 
@@ -20,9 +22,11 @@ class Route:
     #finds the student that is closest to the last routed student without overlapping
     def __greedyFindNext(self, dataMatrix, route):
         #make and array unrouted students 
-        if len(list(set(self.students) - set(route))) == 0:
-            print("AHHH")
-        unRouted = list(set(self.students) - set(route))
+        unRouted = []
+        for s in self.students:
+            if s not in route:
+                unRouted.append(s)
+        #unRouted = list(set(self.students) - set(route))
         minStudent = unRouted[0]
         minValue = dataMatrix[route[len(route)-1].distanceMatrixPosition][unRouted[0].distanceMatrixPosition]
         #find the closest student out of all the unrouted students
@@ -146,7 +150,7 @@ class Route:
         #add schools to route
         while (len(route) < len(self.students) + len(self.schools)):
             route.append(self.__greedyFindNextSchool(dataMatrix, route))
-            
+        
         #store the route in the route object's stopsInOrder
         self.stopsInOrder = route
 
@@ -180,6 +184,37 @@ class Route:
             cummulativeDistance += dataMatrix[self.stopsInOrder[n].distanceMatrixPosition][self.stopsInOrder[n + 1].distanceMatrixPosition]
             n += 1
         return cummulativeDistance
-
-
     
+    def plot(self):
+        #import smopy
+        #TODO: USE SMOPY TO DRAW MAP
+        lat = []
+        long = []
+        markers = []
+        colors = ['yellow', 'green', 'blue', 'red', 'magenta', 'crimson', 'cyan', 'orange', 'navy', 'wheat', 'silver', 'plum', 'black']
+        for e in self.stopsInOrder:
+            lat.append(e.latitue)
+            long.append(e.longitude)
+            if e in self.schools:
+                plt.plot(e.longitude, e.latitue, 'x', color = colors[e.id], zorder=10, label = e.name)
+            elif e in self.students:
+                plt.plot(e.longitude, e.latitue, '.', color = colors[e.placementId], zorder=10)
+        plt.plot(long, lat)
+        plt.legend()
+        plt.show()
+
+    def simplify(self):
+        cullList = []
+        ids = [x.id for x in self.stopsInOrder]
+        idsNoDupes = deepcopy(list(set(ids)))
+        for num in idsNoDupes:
+            if ids.count(num)>1:
+                dupes = [i for i, x in enumerate(self.stopsInOrder) if x.id == num]
+                cullList.extend(dupes[1:])
+        for index in sorted(cullList, reverse=True):
+            del self.stopsInOrder[index]
+    
+                
+                
+            
+            

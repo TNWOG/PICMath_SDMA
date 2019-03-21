@@ -6,6 +6,8 @@ import Route
 import pandas as pd
 import csv
 
+API_KEY = '5b3ce3597851110001cf6248bf5e66acdc094c8c8277707805f99a57'
+
 #Read in data from file and construct arrays of the data structures
 #read in csv to a matrix without the headers
 studentCsv = pd.read_csv("studentInputData.csv", delimiter=',')
@@ -69,9 +71,8 @@ schoolObjects[7].distanceMatrixPosition = 256
 schoolObjects[8].distanceMatrixPosition = 257
 schoolObjects[9].distanceMatrixPosition = 258
 schoolObjects[10].distanceMatrixPosition = 259
-
-
-
+for s in schoolObjects:
+    s.geocode(API_KEY)
 #placement
 #place locked in students
 for school in schoolObjects:
@@ -138,6 +139,10 @@ for student in studentObjects:
     if ((student.bussing) and (student.timeOfDay == 'PM')):
         pmBussingStudents.append(student)
 
+for e in amBussingStudents:
+    e.geocode(API_KEY)
+for e in pmBussingStudents:
+    e.geocode(API_KEY)
 
 #determine the number of routes needed for am and pm routes and make arrays of each
 numAmRoutes = 0
@@ -151,7 +156,6 @@ for route in routeObjects:
     if (route.timeOfDay == 'PM'):
         numPmRoutes += 1
         pmRoutes.append(route)
-        
 
 #make the clsuters
 amClusterMatrix = cl.calClusterMethod(masterDistanceMatrix, numAmRoutes, amBussingStudents)
@@ -175,9 +179,14 @@ print("Swap")
 amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 300)
 pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 300)
 
+
 #assign improved routes to the routeObjects array
 routeObjects = amRoutes + pmRoutes
 for route in routeObjects:
+    #simplify routes
+    route.simplify()
+    #plot route
+    route.plot()
     print(route.averageDistance(masterDistanceMatrix))
 
 

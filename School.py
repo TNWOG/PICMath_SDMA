@@ -1,5 +1,5 @@
 #define the school class
-
+import pandas as pd
 class School:
 
     def __init__(self, id, name, capacity, address, city, state, zipCode, timeOfDay, startTime):
@@ -31,5 +31,9 @@ class School:
         if (len(self.studentList) >= self.capacity):
             self.full = True
         return True
-        
+    def geocode(self, API_KEY):
+        data = pd.read_csv("SDMA_Student_LatLongGen - student&School.csv")
+        studentRow = data.iloc[self.distanceMatrixPosition]
+        self.longitude = studentRow['Longitude']
+        self.latitue = studentRow['Latitude']
         

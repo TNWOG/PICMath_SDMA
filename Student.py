@@ -1,10 +1,9 @@
 #Define the student class
 import openrouteservice
 import numpy as np
+import pandas as pd
 
 class Student:
-
-    API_KEY = '5b3ce3597851110001cf6248bf5e66acdc094c8c8277707805f99a57'
 
     def __init__(self, id, pref1, pref2, pref3, pref4, pref5, lockedIn, address, city, state, zipCode, bussing):
         self.id = id
@@ -50,8 +49,25 @@ class Student:
         return hash(self.id)
 
 
-    def geocode(self):
-        client = openrouteservice.Client(key=API_KEY)
-        #queryText = str(self.address) + " " + str(self.city) + ", " str(self.state) + " " + str(self.zipCode)
+    def geocode(self, API_KEY):
+        data = pd.read_csv("SDMA_Student_LatLongGen - student&School.csv")
+        studentRow = data.loc[data['student ID / school Name'] == str(int(self.id))]
+        self.longitude = studentRow['Longitude'].values[0]
+        self.latitue = studentRow['Latitude'].values[0]
         
+        '''
+        import time
+        client = openrouteservice.Client(key=API_KEY)
+        queryText = str(str(self.address) + ", " + str(self.city) + ", " + str(self.state) + " " + str(int(self.zipCode)))
+        query = openrouteservice.geocode.pelias_autocomplete(client, queryText)
+        if query['features']:
+            features = query['features'][0]
+            coordinates = features['geometry']['coordinates']
+            print(coordinates)
+            self.longitude = coordinates[0]
+            self.latitude = coordinates[1]
+        else:
+            print("FAIL", queryText)
+        time.sleep(0.5)
+        '''
 
