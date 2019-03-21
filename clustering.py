@@ -1,6 +1,7 @@
 #imports
 import pandas as pd
 import csv
+import math
 
 #BEGIN CLUSTERING FUNCTIONS
 
@@ -109,23 +110,32 @@ def thueMorseGenerator(sequence, numberOfRecursions):
 
     index = 0
     while (numberOfRecursions>1):
-        thisSequence = playersLists[index];
-        thisCount = len(thisSequence);
-        segmentLength = int(thisCount / initialCount);
-        newSequence = "";
+        thisSequence = playersLists[index]
+        thisCount = len(thisSequence)
+        segmentLength = int(thisCount / initialCount)
+        newSequence = ""
         
         for n in range(0, initialCount):
             for i in range(n * segmentLength, thisCount + n * segmentLength):
-                j = i % thisCount;
-                newSequence += thisSequence[j];
+                j = i % thisCount
+                newSequence += thisSequence[j]
 
-        playersLists.append(newSequence);
+        playersLists.append(newSequence)
         index+=1
         
         if (len(playersLists) >= numberOfRecursions):
-            break;
+            break
     return playersLists[-1] #returns last element in list
 
+#helper method for Sweep algorithm - could be better
+def findAnglesFromCenter(geoLocations, origin):
+        
+    angles = []
+    for i in range(len(geoLocations)):
+        #tan(longitude/latitude)
+        angles.append(math.tan((geoLocations[i][0] - origin[0])/ (geoLocations[i][1] - origin[1])))
+        
+    return angles
 
 
 #END OF HELPER FUNCTIONS
@@ -163,7 +173,44 @@ def calClusterMethod(dataMatrix, numClusters, studentsToCluster):
             clusteredStudents += 1
             i += 1    
     return clusters
+
+
+def SweepClusterMethod(dataMatrix, numClusters):
+    clusteredStudents = 0
+    numStudents = len(dataMatrix)
+    numStudentsPerCluster = int(numStudents/numClusters) #could also equal bus capacity but would be too large
+
+    #in case of unclustered students
+    while(numStudentsPerCluster*numClusters<numStudents):
+        numStudentsPerCluster+=1
+        
+    # hardcoded to the where highway 94 meets 25
+    #                longitude            latitude
+    centerVertex = [-91.93300598086705, 44.907098609311305]
+        
+    angles = findAnglesFromCenter(dataMatrix, centerVertex)
+
+    studentIndices = sorted(range(len(angles)), key=lambda k: angles[k]) #sort angles, return sorted student indices array
+
+    currentCluster=0
+    sortedStudents=0
     
+    #initialize numClusters as 2d array
+    clusters = [[]] * numClusters
+    
+    print(clusters)
+    while(currentCluster<numClusters or sortedStudents<numStudents):
+        for unsortedStudents in range(numStudentsPerCluster): 
+            
+            #add students to cluster based on smallest unused angle
+            clusters[currentCluster].append(studentIndices[sortedStudents])
+            sortedStudents+=1
+            if(sortedStudents==numStudents):
+                break
+                
+        currentCluster+=1
+    
+    return clusters
     
 #END OF CLUSTERING FUNCTIONS
 
