@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from copy import deepcopy
 class Route:
     #import Student
@@ -218,8 +219,184 @@ class Route:
                 cullList.extend(dupes[1:])
         for index in sorted(cullList, reverse=True):
             del self.stopsInOrder[index]
+            
+            
+#===========BRUTEFORCE===============================
+    #create smaller matrix from master distance matrix
+    def GenerateMatrixFromMaster(self, cluster, masterMatrix):
+        matrix = np.zeros((len(cluster),len(cluster)))
+        for i in range(len(cluster)):
+            for j in range(len(cluster)):
+                matrix[i][j] = masterMatrix[cluster[i]][cluster[j]]
+        return matrix
+    #create smaller set of data from master array
+    def GenerateDataFromMaster(self, cluster, fullData):
+        return np.array([fullData[x] for x in cluster])
     
+    def BFRouting(self, dataMatrix):
+        indices = [x.distanceMatrixPosition for x in self.students]
+        mat = self.GenerateMatrixFromMaster(indices, dataMatrix)
+        data = list(zip([x.longitude for x in self.students], [x.latitue for x in self.students]))
+        length, perm = self.TravellingSalesmanBF(mat, data, splits=2, FBProp=True, FBLoops=10)
+        globalInd = [indices[x] for x in perm]
+        schoolPerm, length = self.AddSchools(globalInd, dataMatrix, indices)
+        self.stopsInOrder = []
+        schoolInd = [x.distanceMatrixPosition for x in self.schools]
+        for p in schoolPerm:
+            if p in indices:
+                self.stopsInOrder.append(self.students[indices.index(p)])
+            elif p in schoolInd:
+                self.stopsInOrder.append(self.schools[schoolInd.index(p)])
+        
+    def permutationDistances(self, a, l, r, M, minLen, minPerm, peekFor = None, peekBack = None): 
+        #l = start, r = end
+        if l==r: 
+            curLength = 0
+            #add the distances in the order of the permutation 
+            for i in range(len(a)-1):
+                #if the first element in array
+                if i == 0:
+                    #if peek is set
+                    if peekFor is not None:
+                        #add length of peek to array
+                        curLength += M[peekFor][a[i]]
+                if i == len(a)-2:
+                    #if peek is set
+                    if peekBack is not None:
+                        #add length of peek to array
+                        curLength += M[a[i+1]][peekBack]
+                curLength += M[a[i]][a[i+1]]
+            #if current minimum
+            if curLength<minLen[0]:
+                #clear reference arrays
+                minLen.clear()
+                minPerm.clear()
+                #append new values
+                minLen.append(curLength)
+                minPerm.extend(a)
+        else: 
+            #recursively compute more permutations
+            for i in range(l,r+1): 
+                a[l], a[i] = a[i], a[l] 
+                self.permutationDistances(a, l+1, r, M, minLen, minPerm, peekFor, peekBack) 
+                a[l], a[i] = a[i], a[l]
+            
+    #bruteforce method for travelling salesman
+    def TravellingSalesmanBF(self, M, data, splits = 1, peek = True, FBProp = False, FBLoops = 1):
+        #generate indices of array
+        #determines mean point
+        mid = np.mean(data, axis=0)
+        #get furthest from mean
+        furthestPoint = np.linalg.norm(np.abs(data.copy()-mid),axis=1).argmax()
+        #get all distances from furthest point
+        dist = np.abs(data.copy()-np.array(data[furthestPoint]))
+        #sort indexes according to distance from furthest point
+        a = np.argsort(np.linalg.norm(dist,axis=1))
+        #generate all possible permutations for indice list
+        lengths = []
+        print("Generating routes")
+        #reshaping the array for n amount of splits
+        final = []
+        size = int(np.ceil(len(a)/splits))
+        print(size, " size splits")
+        k = 0
+        while(size*k<len(a)):
+            final.append(a[size*k:size+size*k])
+            k+=1
+        a = final
+        #begin looping for number of loops
+        for itr in range(FBLoops):
+            minLens, perms = np.array([], dtype='int'), np.array([], dtype='int')
+            #forward propagation
+            for i in range(splits):
+                #print(i)
+                minLen = ([100000])
+                minPerm = ([])
+                #recursively determine permutation
+                if peek:
+                    if i == 0:
+                        self.permutationDistances(a[i], 0, len(a[i])-1, M, minLen, minPerm)
+                    else:
+                        self.permutationDistances(a[i], 0, len(a[i])-1, M, minLen, minPerm, peekFor = a[i-1][len(a[i-1])-1]) 
+                else:
+                    self.permutationDistances(a[i], 0, len(a[i])-1, M, minLen, minPerm) 
+                minLens = np.append(minLens, minLen)
+                perms = np.append(perms, minPerm)
+            #reshaping the array for n amount of splits
+            final = []
+            size = int(np.ceil(len(perms)/splits))
+            k = 0
+            while(size*k<len(perms)):
+                final.append(perms[size*k:size+size*k])
+                k+=1
+            a = final
+            #goes backwards if intended
+            if(FBProp):
+                minLens, perms = np.array([], dtype='int'), np.array([], dtype='int')
+                for i in range(splits-1, -1, -1):
+                    #print(i)
+                    minLen = ([100000])
+                    minPerm = ([])
+                    #recursively determine permutation
+                    if peek:
+                        if i == splits-1:
+                            minPerm = a[i]
+                            curLength = 0
+                            for j in range(len(a[i])-1):
+                                curLength += M[a[i][j]][a[i][j+1]]
+                            minLen = curLength
+                        else:
+                            self.permutationDistances(a[i], 0, len(a[i])-1, M, minLen, minPerm, peekBack = a[i+1][0]) 
+                    else:
+                        self.permutationDistances(a[i], 0, len(a[i])-1, M, minLen, minPerm) 
+                    minLens = np.append(minLens, minLen)
+                    perms = np.append(perms, minPerm)
+                #reshaping the array for n amount of splits
+                final = []
+                size = int(np.ceil(len(perms)/splits))
+                k = 0
+                while(size*k<len(perms)):
+                    beginInd = len(perms)-size-size*k
+                    if beginInd<0:
+                        beginInd = 0
+                    final.append(perms[beginInd:len(perms)-size*k])
+                    k+=1
+                a = final.copy()
+                a = np.array(final.copy())
+                #convert back to 1-D array
+                perms = a.flatten()
+        #return length and indice array for minimal distance route.
+        finalPerm = np.array([], dtype='int')
+        for i in range(len(perms)):
+            finalPerm = np.append(finalPerm, perms[i])
+        return minLens.sum(), list(finalPerm)
+    
+    def AddSchools(self, perm, mat, indices):
+        curSchools = [] 
+        self.updateSchools()
+        for p in range(len(perm)-1, -1, -1):
+                for s in self.schools:
+                    if self.students[indices.index(perm[p])].placementName == s.name and s not in [x[0] for x in curSchools]:
+                        curSchools.append([s,p] )
+        length = 0
+        for c in curSchools:
+            i = len(perm)
+            minLen = 1000000000
+            minPerm = []
+            while i > c[1]:
+                tempPerm = deepcopy(perm)
+                tempPerm.insert(i, c[0].distanceMatrixPosition)
+                curLen = 0
+                for j in range(len(tempPerm)-1):
+                    curLen += mat[tempPerm[j]][tempPerm[j+1]]
+               
+                if curLen < minLen :
+                    minLen = curLen
+                    minPerm = tempPerm
+                i-= 1
+            length = minLen
+            perm = minPerm
+        return perm, length
+                    
                 
                 
-            
-            
