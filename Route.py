@@ -185,23 +185,28 @@ class Route:
             n += 1
         return cummulativeDistance
     
-    def plot(self):
-        #import smopy
-        #TODO: USE SMOPY TO DRAW MAP
+    def plot(self, map):
+        
         lat = []
         long = []
         markers = []
         colors = ['yellow', 'green', 'blue', 'red', 'magenta', 'crimson', 'cyan', 'orange', 'navy', 'wheat', 'silver', 'plum', 'black']
+        ax = map.show_mpl(figsize=(8,6))
         for e in self.stopsInOrder:
-            lat.append(e.latitue)
-            long.append(e.longitude)
+            x, y = map.to_pixels(e.latitue,e.longitude)
+            lat.append(x)
+            long.append(y)
             if e in self.schools:
-                plt.plot(e.longitude, e.latitue, 'x', color = colors[e.id], zorder=10, label = e.name)
+                ax.plot(x, y, 'x', color = colors[e.id], zorder=10, label = e.name, markersize = 20)
             elif e in self.students:
-                plt.plot(e.longitude, e.latitue, '.', color = colors[e.placementId], zorder=10)
-        plt.plot(long, lat)
-        plt.legend()
-        plt.show()
+                ax.plot(x, y, '.', color = colors[e.placementId], zorder=10, markersize = 20, linewidth = 2)
+        ax.plot(lat, long, 'b', linewidth = 2)
+        ax.relim()
+        ax.autoscale()
+        ax.legend()
+        plt.draw()
+        #plt.legend()
+        #plt.show()
 
     def simplify(self):
         cullList = []

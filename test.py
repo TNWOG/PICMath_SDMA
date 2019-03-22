@@ -179,14 +179,17 @@ print("Swap")
 amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 300)
 pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 300)
 
+import smopy
+map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
 
 #assign improved routes to the routeObjects array
 routeObjects = amRoutes + pmRoutes
+
 for route in routeObjects:
     #simplify routes
     route.simplify()
     #plot route
-    route.plot()
+    route.plot(map)
     print(route.averageDistance(masterDistanceMatrix))
 
 
