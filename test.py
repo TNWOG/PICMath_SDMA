@@ -166,18 +166,20 @@ pmClusterMatrix = cl.calClusterMethod(masterDistanceMatrix, numPmRoutes, pmBussi
 for i in range(numAmRoutes):
     amRoutes[i].students = amClusterMatrix[i].copy()
     amRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
+    #amRoutes[i].BFRouting(masterDistanceMatrix)
     #for student in amRoutes[i].students:
         #print(student.school.name)
     print(amRoutes[i].averageDistance(masterDistanceMatrix))
 for i in range(numPmRoutes):
     pmRoutes[i].students = pmClusterMatrix[i].copy()
     pmRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
+    #pmRoutes[i].BFRouting(masterDistanceMatrix)
     print(pmRoutes[i].averageDistance(masterDistanceMatrix))
 
 print("Swap")
 #improve the routes with random swapping
-amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 300)
-pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 300)
+#amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 300)
+#pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 300)
 
 import smopy
 map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
