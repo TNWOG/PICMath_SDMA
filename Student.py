@@ -48,6 +48,9 @@ class Student:
     def __hash__(self):
         return hash(self.id)
 
+    def __str__(self):
+        return str(self.id)
+
 
     def geocode(self, API_KEY):
         data = pd.read_csv("SDMA_Student_LatLongGen - student&School.csv")

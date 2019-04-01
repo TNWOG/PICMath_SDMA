@@ -27,6 +27,9 @@ class School:
     def __hash__(self):
         return hash(self.id)
 
+    def __str__(self):
+        return self.name
+
     def addStudent(self, student):
         if (self.full):
             return False

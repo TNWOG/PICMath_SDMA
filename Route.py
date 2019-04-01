@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
+import School
 class Route:
     #import Student
 
@@ -119,8 +120,8 @@ class Route:
     def updateSchools(self):
         newSchools = []
         for student in self.students:
-            if student not in newSchools:
-                newSchools.append(student)
+            if student.school not in newSchools:
+                newSchools.append(student.school)
         self.schools = newSchools.copy()
         return len(self.schools)
 
