@@ -19,6 +19,14 @@ class School:
         self.studentList = []
         self.distanceMatrixPosition = -1
 
+    def __eq__(self, other):
+        if (self.id == other.id):
+            return True
+        return False
+
+    def __hash__(self):
+        return hash(self.id)
+
     def addStudent(self, student):
         if (self.full):
             return False

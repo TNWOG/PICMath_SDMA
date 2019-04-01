@@ -27,7 +27,7 @@ class Route:
         for s in self.students:
             if s not in route:
                 unRouted.append(s)
-        #unRouted = list(set(self.students) - set(route))
+        
         minStudent = unRouted[0]
         minValue = dataMatrix[route[len(route)-1].distanceMatrixPosition][unRouted[0].distanceMatrixPosition]
         #find the closest student out of all the unrouted students
@@ -40,7 +40,11 @@ class Route:
         #finds the school that is closest to the last stop overlapping
     def __greedyFindNextSchool(self, dataMatrix, route):
         #make and array unrouted schools 
-        unRouted = list(set(self.schools) - set(route))
+        unRouted = []
+        for s in self.schools:
+            if s not in route:
+                unRouted.append(s)
+                
         minSchool = unRouted[0]
         minValue = dataMatrix[route[len(route)-1].distanceMatrixPosition][unRouted[0].distanceMatrixPosition]
         #find the closest student out of all the unrouted students
@@ -115,9 +119,9 @@ class Route:
     def updateSchools(self):
         newSchools = []
         for student in self.students:
-            school = [student.school]
-            newSchools = list(set(newSchools) | set(school))
-        self.schools = newSchools
+            if student not in newSchools:
+                newSchools.append(student)
+        self.schools = newSchools.copy()
         return len(self.schools)
 
     #just adds the the students to the route and then the schools. There is no ordering
