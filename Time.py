@@ -19,7 +19,10 @@ class Time:
 
     #override print operator
     def __str__(self):
-        return str(int(self.hour)) + ":" + str(int(self.minute))
+        if self.minute >= 10:
+            return str(int(self.hour)) + ":" + str(int(self.minute))
+        else:
+            return str(int(self.hour)) + ":0" + str(int(self.minute))
 
 
 #================Addition and subtraction=======================================
