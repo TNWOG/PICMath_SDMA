@@ -2,6 +2,7 @@
 import openrouteservice
 import numpy as np
 import pandas as pd
+import Time
 
 class Student:
 
@@ -33,7 +34,7 @@ class Student:
         self.placementName = ""
         self.placementId = -1
         self.school = None
-        self.busTime = -1
+        self.busTime = Time.Time(0)
         self.busRoute = -1
         self.longitude = -1
         self.latitue = -1

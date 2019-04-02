@@ -5,6 +5,7 @@ import School
 import Route
 import pandas as pd
 import csv
+import Time
 
 API_KEY = '5b3ce3597851110001cf6248bf5e66acdc094c8c8277707805f99a57'
 
@@ -169,17 +170,17 @@ for i in range(numAmRoutes):
     #amRoutes[i].BFRouting(masterDistanceMatrix)
     #for student in amRoutes[i].students:
         #print(student.school.name)
-    print(amRoutes[i].averageDistance(masterDistanceMatrix))
+    print(Time.Time(amRoutes[i].averageDistance(masterDistanceMatrix)))
 for i in range(numPmRoutes):
     pmRoutes[i].students = pmClusterMatrix[i].copy()
     pmRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
     #pmRoutes[i].BFRouting(masterDistanceMatrix)
-    print(pmRoutes[i].averageDistance(masterDistanceMatrix))
+    print(Time.Time(pmRoutes[i].averageDistance(masterDistanceMatrix)))
 
 print("Swap")
 #improve the routes with random swapping
-amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 1000)
-pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 1000)
+amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 10000)
+pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 10000)
 
 import smopy
 map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
@@ -193,7 +194,7 @@ for route in routeObjects:
     #plot route
     #route.plot(map)
     print(*route.stopsInOrder)
-    print(route.averageDistance(masterDistanceMatrix))
+    print(Time.Time(route.averageDistance(masterDistanceMatrix)))
 
 
 

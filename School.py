@@ -1,5 +1,6 @@
 #define the school class
 import pandas as pd
+import Time
 class School:
 
     def __init__(self, id, name, capacity, address, city, state, zipCode, timeOfDay, startTime):
@@ -11,7 +12,7 @@ class School:
         self.state = state
         self.zipCode = zipCode
         self.timeOfDay = timeOfDay
-        self.startTime = startTime
+        self.startTime = Time.Time(startTime)
         #set variables not set in by parameters to dummy data to show that it is unset
         self.full = False
         self.longitude = -1
@@ -23,6 +24,13 @@ class School:
         if (self.id == other.id):
             return True
         return False
+    
+    def __lt__(self, other):
+        return self.startTime < other.startTime
+
+#overloading less than and greater than for sorting based on start times
+    def __gt__(self, other):
+        return self.startTime > other.startTime
 
     def __hash__(self):
         return hash(self.id)

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
 import School
+import Time
 class Route:
     #import Student
 
@@ -403,5 +404,38 @@ class Route:
             perm = minPerm
         return perm, length
                     
-                
-                
+
+
+#========================Route that accounts for start times=========================
+#this algorithm starts with the last school in the route, build the route from the
+#back to the front, and then flip the route. This algorithm takes into account start
+#times
+
+
+    def routeWithStartTimes(self):
+        window = Time.Time("0:15")
+        route = []
+        #set the list of schools on the route to all the student's schools
+        self.updateSchools()
+        #order the schools based on start times
+        schools = self.schools.copy()
+        schools.sort(reverse=True)
+
+        
+        
+
+
+
+
+
+            
+    
+    
+
+
+
+
+
+
+
+
