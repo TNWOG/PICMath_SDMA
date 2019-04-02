@@ -205,12 +205,15 @@ class Route:
             long.append(y)
             if e in self.schools:
                 ax.plot(x, y, 'x', color = colors[e.id], zorder=10, label = e.name, markersize = 20)
+                ax.annotate(e.startTime, (x,y))
             elif e in self.students:
                 ax.plot(x, y, '.', color = colors[e.placementId], zorder=10, markersize = 20, linewidth = 2)
+                ax.annotate(e.busTime, (x,y))
         ax.plot(lat, long, 'b', linewidth = 2)
         ax.relim()
         ax.autoscale()
         ax.legend()
+        plt.savefig(str(self.busNumber) + '.png')
         plt.draw()
         #plt.legend()
         #plt.show()
@@ -420,6 +423,20 @@ class Route:
         #order the schools based on start times
         schools = self.schools.copy()
         schools.sort(reverse=True)
+        
+    def generateRouteTimes(self, distMatrix):
+        lastStop = self.stopsInOrder[-1]
+        curTime = lastStop.startTime
+        idx = self.stopsInOrder.index(lastStop)
+        while idx > 0:
+            if self.stopsInOrder[idx-1] in self.students:
+                duration = distMatrix[self.stopsInOrder[idx-1].distanceMatrixPosition][self.stopsInOrder[idx].distanceMatrixPosition]
+                durationTime = Time.Time(duration)
+                curTime = curTime-durationTime
+                self.stopsInOrder[idx-1].busTime = curTime
+            elif self.stopsInOrder[idx-1] in self.schools:
+                curTime = self.stopsInOrder[idx-1].startTime
+            idx -= 1
 
         
         

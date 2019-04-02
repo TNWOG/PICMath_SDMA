@@ -147,11 +147,19 @@ for route in routeObjects:
     #simplify routes
     #route.simplify()
     #plot route
+    route.generateRouteTimes(masterDistanceMatrix)
     route.plot(map)
     print(*route.stopsInOrder)
     print(Time.Time(route.averageDistance(masterDistanceMatrix)))
+
+
 #routes
 with open('routeOutputData.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for route in routeObjects:
         writer.writerow([route.busNumber, route.averageDistance(masterDistanceMatrix), route.updateSchools()])
+        for i in route.stopsInOrder:
+            if i in route.schools:
+                writer.writerow(['school', i.name, i.startTime])
+            if i in route.students:
+                writer.writerow([i.id, i.placementName, i.busTime])
