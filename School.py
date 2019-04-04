@@ -1,5 +1,6 @@
 #define the school class
-
+import pandas as pd
+import Time
 class School:
 
     def __init__(self, id, name, capacity, address, city, state, zipCode, timeOfDay, startTime):
@@ -11,13 +12,31 @@ class School:
         self.state = state
         self.zipCode = zipCode
         self.timeOfDay = timeOfDay
-        self.startTime = startTime
+        self.startTime = Time.Time(startTime)
         #set variables not set in by parameters to dummy data to show that it is unset
         self.full = False
         self.longitude = -1
         self.latitue = -1
         self.studentList = []
         self.distanceMatrixPosition = -1
+
+    def __eq__(self, other):
+        if (self.id == other.id):
+            return True
+        return False
+    
+    def __lt__(self, other):
+        return self.startTime < other.startTime
+
+#overloading less than and greater than for sorting based on start times
+    def __gt__(self, other):
+        return self.startTime > other.startTime
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __str__(self):
+        return self.name
 
     def addStudent(self, student):
         if (self.full):
@@ -31,5 +50,9 @@ class School:
         if (len(self.studentList) >= self.capacity):
             self.full = True
         return True
-        
+    def geocode(self, API_KEY):
+        data = pd.read_csv("SDMA_Student_LatLongGen - student&School.csv")
+        studentRow = data.iloc[self.distanceMatrixPosition]
+        self.longitude = studentRow['Longitude']
+        self.latitue = studentRow['Latitude']
         

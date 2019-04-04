@@ -5,6 +5,9 @@ import School
 import Route
 import pandas as pd
 import csv
+import Time
+
+API_KEY = '5b3ce3597851110001cf6248bf5e66acdc094c8c8277707805f99a57'
 
 #Read in data from file and construct arrays of the data structures
 #read in csv to a matrix without the headers
@@ -25,7 +28,6 @@ routeMatrix = routeNoHeader.values
 #make master distance matrix
 #this will be replaced by code that builds the distance matrix based on geocode data
 masterDistanceMatrix = cl.metricCSVtoMatrix('durations_with_schools.csv')
-
 
 
 #create arrays to store the student and school objects
@@ -69,9 +71,8 @@ schoolObjects[7].distanceMatrixPosition = 256
 schoolObjects[8].distanceMatrixPosition = 257
 schoolObjects[9].distanceMatrixPosition = 258
 schoolObjects[10].distanceMatrixPosition = 259
-
-
-
+for s in schoolObjects:
+    s.geocode(API_KEY)
 #placement
 #place locked in students
 for school in schoolObjects:
@@ -138,6 +139,10 @@ for student in studentObjects:
     if ((student.bussing) and (student.timeOfDay == 'PM')):
         pmBussingStudents.append(student)
 
+for e in amBussingStudents:
+    e.geocode(API_KEY)
+for e in pmBussingStudents:
+    e.geocode(API_KEY)
 
 #determine the number of routes needed for am and pm routes and make arrays of each
 numAmRoutes = 0
@@ -151,7 +156,6 @@ for route in routeObjects:
     if (route.timeOfDay == 'PM'):
         numPmRoutes += 1
         pmRoutes.append(route)
-        
 
 #make the clsuters
 amClusterMatrix = cl.calClusterMethod(masterDistanceMatrix, numAmRoutes, amBussingStudents)
@@ -161,24 +165,36 @@ pmClusterMatrix = cl.calClusterMethod(masterDistanceMatrix, numPmRoutes, pmBussi
 #create an initial route
 for i in range(numAmRoutes):
     amRoutes[i].students = amClusterMatrix[i].copy()
-    amRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
+    amRoutes[i].routeWithStartTimes(masterDistanceMatrix)
+    #amRoutes[i].BFRouting(masterDistanceMatrix)
     #for student in amRoutes[i].students:
         #print(student.school.name)
-    print(amRoutes[i].averageDistance(masterDistanceMatrix))
+    print(Time.Time(amRoutes[i].averageDistance(masterDistanceMatrix)))
 for i in range(numPmRoutes):
     pmRoutes[i].students = pmClusterMatrix[i].copy()
-    pmRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
-    print(pmRoutes[i].averageDistance(masterDistanceMatrix))
+    pmRoutes[i].routeWithStartTimes(masterDistanceMatrix)
+    #pmRoutes[i].BFRouting(masterDistanceMatrix)
+    print(Time.Time(pmRoutes[i].averageDistance(masterDistanceMatrix)))
 
 print("Swap")
 #improve the routes with random swapping
-amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 300)
-pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 300)
+amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 500)
+pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 500)
+
+import smopy
+map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
 
 #assign improved routes to the routeObjects array
 routeObjects = amRoutes + pmRoutes
+
 for route in routeObjects:
-    print(route.averageDistance(masterDistanceMatrix))
+    #simplify routes
+    #route.simplify()
+    #plot route
+    route.plot(map)
+    print(*route.stopsInOrder)
+    print(Time.Time(route.averageDistance(masterDistanceMatrix)))
+
 
 
 #save all the data to an output .csv file
