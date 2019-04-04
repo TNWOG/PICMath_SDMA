@@ -20,9 +20,6 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
         swapRoutes = random.sample(routeArray, 2)
         route1 = swapRoutes[0]
         route2 = swapRoutes[1]
-        #calculate routes and get the total distance of the routes before swapping
-        route1.routeWithStartTimes(dataMatrix)
-        route2.routeWithStartTimes(dataMatrix)
         #route1oldTime = route1.averageDistance(dataMatrix)
         #route2oldTime = route2.averageDistance(dataMatrix)
         oldTime = route1.averageDistance(dataMatrix)*len(route1.students) + route2.averageDistance(dataMatrix)*len(route2.students)

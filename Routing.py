@@ -121,21 +121,21 @@ pmClusterMatrix = cl.calClusterMethod(masterDistanceMatrix, numPmRoutes, pmBussi
 #create an initial route
 for i in range(numAmRoutes):
     amRoutes[i].students = amClusterMatrix[i].copy()
-    amRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
+    amRoutes[i].routeWithStartTimes(masterDistanceMatrix)
     #amRoutes[i].BFRouting(masterDistanceMatrix)
     #for student in amRoutes[i].students:
         #print(student.school.name)
     print(Time.Time(amRoutes[i].averageDistance(masterDistanceMatrix)))
 for i in range(numPmRoutes):
     pmRoutes[i].students = pmClusterMatrix[i].copy()
-    pmRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
+    pmRoutes[i].routeWithStartTimes(masterDistanceMatrix)
     #pmRoutes[i].BFRouting(masterDistanceMatrix)
     print(Time.Time(pmRoutes[i].averageDistance(masterDistanceMatrix)))
 
 print("Swap")
 #improve the routes with random swapping
-amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 10)
-pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 10)
+amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 5000)
+pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 5000)
 
 import smopy
 map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
@@ -148,7 +148,7 @@ for route in routeObjects:
     #route.simplify()
     #plot route
     route.generateRouteTimes(masterDistanceMatrix)
-    route.plot(map)
+    #route.plot(map)
     print(*route.stopsInOrder)
     print(Time.Time(route.averageDistance(masterDistanceMatrix)))
 
@@ -160,6 +160,6 @@ with open('routeOutputData.csv', 'w', newline='') as csvfile:
         writer.writerow([route.busNumber, route.averageDistance(masterDistanceMatrix), route.updateSchools()])
         for i in route.stopsInOrder:
             if i in route.schools:
-                writer.writerow(['school', i.name, i.startTime])
+                writer.writerow(['school', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
             if i in route.students:
-                writer.writerow([i.id, i.placementName, i.busTime])
+                writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)]])

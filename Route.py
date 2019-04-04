@@ -108,6 +108,7 @@ class Route:
         self.schools = []
         self.stopsInOrder = []
         self.distanceMatrix = []
+        self.busTimes = []
 
     #copy constructor
     def copy(self):
@@ -436,7 +437,6 @@ class Route:
         #order the schools based on start times from latest to earliest
         schools = self.schools.copy()
         schools.sort(reverse=True)
-<<<<<<< HEAD
         #create a 2d array where the first subarray is all the students that attend the first school in schools array
         studentsInSchools = []
         for school in schools:
@@ -544,14 +544,17 @@ class Route:
         lastStop = self.stopsInOrder[-1]
         curTime = lastStop.startTime
         idx = self.stopsInOrder.index(lastStop)
+        self.busTimes.insert(0,curTime)
         while idx > 0:
-            if self.stopsInOrder[idx-1] in self.students:
-                duration = distMatrix[self.stopsInOrder[idx-1].distanceMatrixPosition][self.stopsInOrder[idx].distanceMatrixPosition]
-                durationTime = Time.Time(duration)
-                curTime = curTime-durationTime
-                self.stopsInOrder[idx-1].busTime = curTime
-            elif self.stopsInOrder[idx-1] in self.schools:
-                curTime = self.stopsInOrder[idx-1].startTime
+            duration = distMatrix[self.stopsInOrder[idx-1].distanceMatrixPosition][self.stopsInOrder[idx].distanceMatrixPosition]
+            durationTime = Time.Time(duration)
+            curTime = curTime-durationTime
+            if self.stopsInOrder[idx-1] in self.schools:
+                print(curTime, self.stopsInOrder[idx-1].startTime)
+                if curTime>self.stopsInOrder[idx-1].startTime:
+                    print("reset")
+                    curTime = self.stopsInOrder[idx-1].startTime
+            self.busTimes.insert(0,curTime)
             idx -= 1
 
 
