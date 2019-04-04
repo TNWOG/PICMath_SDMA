@@ -22,7 +22,7 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
         route2 = swapRoutes[1]
         #route1oldTime = route1.averageDistance(dataMatrix)
         #route2oldTime = route2.averageDistance(dataMatrix)
-        oldTime = route1.averageDistance(dataMatrix)*len(route1.students) + route2.averageDistance(dataMatrix)*len(route2.students)
+        oldTime = route1.distanceStats(dataMatrix)*len(route1.students) + route2.distanceStats(dataMatrix)*len(route2.students)
         
         #pick a student from each route to swap
         route1student = deepcopy(route1.students[random.randint(0, len(route1.students)-1)])
@@ -40,7 +40,7 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
         route2.routeWithStartTimes(dataMatrix)
         #route1newTime = route1.averageDistance(dataMatrix)
         #route2newTime = route2.averageDistance(dataMatrix)
-        newTime = route1.averageDistance(dataMatrix)*len(route1.students) + route2.averageDistance(dataMatrix)*len(route2.students)
+        newTime = route1.distanceStats(dataMatrix)*len(route1.students) + route2.distanceStats(dataMatrix)*len(route2.students)
 
         #set the new routes if they are faster
         #if ((route1newTime < route1oldTime) and (route2newTime < route2oldTime)):
