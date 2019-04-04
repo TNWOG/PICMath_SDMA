@@ -30,7 +30,6 @@ routeMatrix = routeNoHeader.values
 masterDistanceMatrix = cl.metricCSVtoMatrix('durations_with_schools.csv')
 
 
-
 #create arrays to store the student and school objects
 studentObjects = []
 schoolObjects = []
@@ -166,21 +165,21 @@ pmClusterMatrix = cl.calClusterMethod(masterDistanceMatrix, numPmRoutes, pmBussi
 #create an initial route
 for i in range(numAmRoutes):
     amRoutes[i].students = amClusterMatrix[i].copy()
-    amRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
+    amRoutes[i].routeWithStartTimes(masterDistanceMatrix)
     #amRoutes[i].BFRouting(masterDistanceMatrix)
     #for student in amRoutes[i].students:
         #print(student.school.name)
     print(Time.Time(amRoutes[i].averageDistance(masterDistanceMatrix)))
 for i in range(numPmRoutes):
     pmRoutes[i].students = pmClusterMatrix[i].copy()
-    pmRoutes[i].greedyRouteSchoolsAtEnd(masterDistanceMatrix)
+    pmRoutes[i].routeWithStartTimes(masterDistanceMatrix)
     #pmRoutes[i].BFRouting(masterDistanceMatrix)
     print(Time.Time(pmRoutes[i].averageDistance(masterDistanceMatrix)))
 
 print("Swap")
 #improve the routes with random swapping
-amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 10000)
-pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 10000)
+amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 500)
+pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 500)
 
 import smopy
 map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
@@ -192,7 +191,7 @@ for route in routeObjects:
     #simplify routes
     #route.simplify()
     #plot route
-    #route.plot(map)
+    route.plot(map)
     print(*route.stopsInOrder)
     print(Time.Time(route.averageDistance(masterDistanceMatrix)))
 

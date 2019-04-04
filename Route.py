@@ -3,6 +3,8 @@ import numpy as np
 from copy import deepcopy
 import School
 import Time
+import Stop
+
 class Route:
     #import Student
 
@@ -412,17 +414,129 @@ class Route:
 #times
 
 
-    def routeWithStartTimes(self):
+    def routeWithStartTimes(self, dataMatrix):
+        #declare/define variables
+        #the window of time that we can arrive before school starts
         window = Time.Time("0:15")
+        #the array of Stop objects
         route = []
+        #the array of Student and School objects that are encapsulated into Stops in the route array
+        objectsInRoute = []
+
+        #assign the students objects to the route
+        for student in self.students:
+            student.busRoute = self.busNumber
+
+        #define school related variables
         #set the list of schools on the route to all the student's schools
         self.updateSchools()
-        #order the schools based on start times
+        #order the schools based on start times from latest to earliest
         schools = self.schools.copy()
         schools.sort(reverse=True)
+        #create a 2d array where the first subarray is all the students that attend the first school in schools array
+        studentsInSchools = []
+        for school in schools:
+            schoolArray = []
+            for student in self.students:
+                if (student.school == school):
+                    schoolArray.append(student)
+            studentsInSchools.append(schoolArray)
 
+        #loop for adding students in between schools on route
+        for i in range(len(schools)-1):
+            #add the first school to the route with the visit time set to the start time
+            if (i == 0):
+                route.append(Stop.Stop(schools[0], schools[0].startTime))
+                objectsInRoute.append(schools[0])
+                #print(schools[0])
+            #for all other schools, add the school to the route and set the visit time to the time it takes to drive to there
+            else:
+                visitTime = route[len(route)-1].time - Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][schools[i].distanceMatrixPosition])
+                route.append(Stop.Stop(schools[i], visitTime))
+                objectsInRoute.append(schools[i])
+                #print(schools[i])
+            
+            #the next loop find the as many students that will fit between school i and i+1
+            #students are chosen from all unrouted students that attend schools in the route so far
+            proceed = True
+            infiniteLoopCheck = 0
+            while (proceed and infiniteLoopCheck < 10):                                   
+                potentialStudents = []
+                #find all unrouted students that attend schools that have been added to the route
+                for j in range(i+1):
+                    #go through every student that attends the selected school
+                    for student in studentsInSchools[j]:
+                        #print(student, student.school)
+                        #add to list of potentially routable students if they are not yet routed
+                        if student not in objectsInRoute:
+                            potentialStudents.append(student)
+                #find the student with the minimum additional time between the end of the route and the next school to be added
+                minStudent = potentialStudents[0]
+                minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][potentialStudents[0].distanceMatrixPosition] + dataMatrix[potentialStudents[0].distanceMatrixPosition][schools[i+1].distanceMatrixPosition]
+                for student in potentialStudents:
+                    if (dataMatrix[route[len(route)-1].element.distanceMatrixPosition][student.distanceMatrixPosition] + dataMatrix[student.distanceMatrixPosition][schools[i+1].distanceMatrixPosition] < minValue):
+                        minStudent = student
+                        minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][student.distanceMatrixPosition] + dataMatrix[student.distanceMatrixPosition][schools[i+1].distanceMatrixPosition]
+
+                #check to see if this student can be added to the route
+                endOfRouteVisitTime = route[len(route)-1].time
+                schoolStartTime = schools[i+1].startTime
+                travelTime = Time.Time(minValue)
+                if (endOfRouteVisitTime - travelTime > schoolStartTime - window):
+                    visitTime = endOfRouteVisitTime - Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][minStudent.distanceMatrixPosition])
+                    route.append(Stop.Stop(minStudent, visitTime))
+                    objectsInRoute.append(minStudent)
+                    #print(minStudent)
+                #check to see if the time from the end of the route to the next school will fall in between the drop off window
+                #recalculate the stop time for the end of the route because a student may have been added in the last if statement
+                endOfRouteVisitTime = route[len(route)-1].time
+                timeToNextSchool = endOfRouteVisitTime - Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][schools[i+1].distanceMatrixPosition])
+                if (endOfRouteVisitTime - timeToNextSchool < schoolStartTime):
+                    proceed = False
+                else:
+                    infiniteLoopCheck += 1
         
+        #add the last school, but check if the last school is also the first
+        if (len(schools) == 1):
+            route.append(Stop.Stop(schools[0], schools[0].time))
+            objectsInRoute.append(schools[0])
+        else:
+            endOfRouteVisitTime = route[len(route)-1].time
+            visitTime = endOfRouteVisitTime - Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][schools[len(schools)-1].distanceMatrixPosition])
+            route.append(Stop.Stop(schools[len(schools)-1], visitTime))
+            objectsInRoute.append(schools[len(schools)-1])
         
+        #loop until all student have been added to the route
+        while (len(route) < len(self.schools) + len(self.students)):
+            
+            #find all the unrouted students
+            potentialStudents = []
+            for student in self.students:
+                #add to list of potentially routable students if they are not yet routed
+                if student not in objectsInRoute:
+                    potentialStudents.append(student)
+                        
+            #find the unrouted student that is closest to the end of the route
+            minStudent = potentialStudents[0]
+            minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][potentialStudents[0].distanceMatrixPosition]
+            for student in potentialStudents:
+                if (dataMatrix[route[len(route)-1].element.distanceMatrixPosition][student.distanceMatrixPosition]):
+                    minStudent = student
+                    minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][student.distanceMatrixPosition]
+                    
+            #add the student to the route
+            endOfRouteVisitTime = route[len(route)-1].time
+            visitTime = endOfRouteVisitTime - Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][minStudent.distanceMatrixPosition])
+            route.append(Stop.Stop(minStudent, visitTime))
+            objectsInRoute.append(minStudent)
+            #print(minStudent)
+
+        #flip the route
+        objectsInRoute = objectsInRoute[::-1]
+        #add final route to the route's object
+        self.stopsInOrder = objectsInRoute.copy()
+        
+
 
 
 

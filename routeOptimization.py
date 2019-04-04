@@ -10,6 +10,7 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
     
     #loop based on the number of swaps to check
     for x in range(numSwaps):
+        #print(x)
         #copy the routeArray so that we don't make any unwanted changes
         routeArray = []
         for route in routeObjects:
@@ -20,8 +21,8 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
         route1 = swapRoutes[0]
         route2 = swapRoutes[1]
         #calculate routes and get the total distance of the routes before swapping
-        route1.greedyRouteSchoolsAtEnd(dataMatrix)
-        route2.greedyRouteSchoolsAtEnd(dataMatrix)
+        route1.routeWithStartTimes(dataMatrix)
+        route2.routeWithStartTimes(dataMatrix)
         #route1oldTime = route1.averageDistance(dataMatrix)
         #route2oldTime = route2.averageDistance(dataMatrix)
         oldTime = route1.averageDistance(dataMatrix)*len(route1.students) + route2.averageDistance(dataMatrix)*len(route2.students)
@@ -38,8 +39,8 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
         route1.students.append(route2student)
         route2.students.append(route1student)
         #calculate routes and get the total distance of the routes after swapping
-        route1.greedyRouteSchoolsAtEnd(dataMatrix)
-        route2.greedyRouteSchoolsAtEnd(dataMatrix)
+        route1.routeWithStartTimes(dataMatrix)
+        route2.routeWithStartTimes(dataMatrix)
         #route1newTime = route1.averageDistance(dataMatrix)
         #route2newTime = route2.averageDistance(dataMatrix)
         newTime = route1.averageDistance(dataMatrix)*len(route1.students) + route2.averageDistance(dataMatrix)*len(route2.students)
