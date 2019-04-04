@@ -1,4 +1,5 @@
 #imports
+API_KEY = '5b3ce3597851110001cf6248bf5e66acdc094c8c8277707805f99a57'
 import pandas as pd
 import csv
 import math
@@ -125,9 +126,9 @@ def thueMorseGenerator(sequence, numberOfRecursions):
         
         if (len(playersLists) >= numberOfRecursions):
             break
-    return playersLists[-1] #returns last element in list
+    return playersLists[-1] #returns order of allocation
 
-#helper method for Sweep algorithm - could be better
+#helper method for Sweep algorithm
 def findAnglesFromCenter(geoLocations, origin):
         
     angles = []
@@ -165,18 +166,20 @@ def calClusterMethod(dataMatrix, numClusters, studentsToCluster):
         clusters[i].append(seeds[i])
         clusteredStudents += 1
         i += 1
+    
+    allocationOrderForClusters = studentAllocationOrderForClusters(numberOfStudents, numClusters)
+    
     #add students to the clusters
     while (clusteredStudents < numberOfStudents):
-        i = 0
-        while (i < len(seeds) and clusteredStudents < numberOfStudents):
-            clusters[i].append(findNextStudent(dataMatrix, clusters, i, studentsToCluster))
-            clusteredStudents += 1
-            i += 1    
+        clusterIndex = int(allocationOrderForClusters[clusteredStudents])
+        clusters[clusterIndex].append(findNextStudent(dataMatrix, clusters, clusterIndex, studentsToCluster))
+        clusteredStudents += 1    
     return clusters
 
-def SweepClusterMethod(dataMatrix, numClusters):
+def SweepClusterMethod(geoLocations, numClusters):
+    
     clusteredStudents = 0
-    numStudents = len(dataMatrix)
+    numStudents = len(geoLocations)
     numStudentsPerCluster = int(numStudents/numClusters) #could also equal bus capacity but would be too small
     
     #in case of unclustered students
@@ -187,11 +190,10 @@ def SweepClusterMethod(dataMatrix, numClusters):
     #                longitude            latitude
     centerVertex = [-91.93300598086705, 44.907098609311305]
         
-    angles = findAnglesFromCenter(dataMatrix, centerVertex)
+    angles = findAnglesFromCenter(geoLocations, centerVertex)
 
     studentIndices = sorted(range(len(angles)), key=lambda k: angles[k]) #sort angles, return sorted student indices array
 
-    
     sortedStudents=0
     cluster=0
     
@@ -209,5 +211,32 @@ def SweepClusterMethod(dataMatrix, numClusters):
     return clusters
     
 #END OF CLUSTERING FUNCTIONS
+
+#MASTER CLUSTERING METHOD
+def clusterEqually(studentsToCluster, numClusters, schools, placements):
+    distanceMatrix = metricCSVtoMatrix('durations.csv')[:,1:]
+    durationMatrix = deepcopy(distanceMatrix)
+      
+    #cal's method
+    BusMatrix = GenerateMatrixFromMaster(studentsToCluster, durationMatrix)
+    #clustering = calClusterMethod(BusMatrix, BusNums[busInd])
+    
+    #sweep method
+    #BusMatrix = list(zip([students[x].longitude for x in Bussings[busInd]], [students[x].latitude for x in Bussings[busInd]]))
+    #clustering = SweepClusterMethod(BusMatrix, BusNums[busInd])
+    
+    return equalizeClusters(clustering, placements)
+
+def equalizeClusters(clusters, placements,schools):
+    
+    numberOfSchoolsPerCluster = []
+    schoolsPerCluster = []
+    
+    for i in range(len(clusters)):
+        clusters[i] = [Bussings[busInd][x] for x in clustering[i]] #grabs students that need bussing for the student indexes in clusters
+        schoolsPerCluster = GenerateDataFromMaster(clustering[i], placements)
+        #for placement in schoolsPerCluster:
+            
+    return clusters
 
 
