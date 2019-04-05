@@ -1,4 +1,4 @@
-#import clustering as cl
+import clustering as cl
 import routeOptimization as ro
 import Student
 import School
@@ -46,14 +46,18 @@ while (x < len(studentMatrix)):
                                      studentMatrix[x][6], studentMatrix[x][7], studentMatrix[x][8], studentMatrix[x][9], studentMatrix[x][10], studentMatrix[x][11]))
     studentObjects[x].distanceMatrixPosition = x
     if not np.isnan(studentMatrix[x][13]):
-        studentObjects[x].originalRoute = studentMatrix[x][13]
-        studentObjects[x].originalPickup= Time.Time(studentMatrix[x][12])
+        studentObjects[x].busRoute = studentMatrix[x][13]
+        studentObjects[x].busTime= Time.Time(studentMatrix[x][12])
         stuSchool = [i for i in schoolObjects if i.name == studentMatrix[x][14]]
-        print(studentMatrix[x][14], [i.name for i in schoolObjects])
         if len(stuSchool)>0:
             studentObjects[x].school = stuSchool[0]
             studentObjects[x].placementId = stuSchool[0].id
             studentObjects[x].placementName = stuSchool[0].name
+        else:
+            naSchool = School.School(-1, "n/a", 1000, "n/a", "n/a", "n/a", "n/a", "n/a", "9:00")
+            studentObjects[x].school = naSchool
+            studentObjects[x].placementId = naSchool.id
+            studentObjects[x].placementName = naSchool.name          
     x += 1
 
 #set the school's master distance matrix index. This will need to be changed later
@@ -73,21 +77,38 @@ schoolObjects[10].distanceMatrixPosition = 259
 for s in schoolObjects:
     s.geocode(API_KEY)
 #placement
-busRouteNums = np.unique([x.originalRoute for x in studentObjects if x.originalRoute>=0])
+busRouteNums = np.unique([x.busRoute for x in studentObjects if x.busRoute>=0])
 routes = []
 for i in busRouteNums:
     newRoute = Route.Route(i, float('inf'), 'N/A')
-    newRoute.students.extend([x for x in studentObjects if x.originalRoute == i])
+    newRoute.students.extend([x for x in studentObjects if x.busRoute == i])
     newRoute.updateSchools()
     newRoute.combineStudentsAndSchools()
-    print(newRoute.stopsInOrder)
-    routes.append(newRoute)
-'''
-#save all the data to an output .csv file
-#students
-with open('studentOutputData.csv', 'w', newline='') as csvfile:
+    times = []
+    for x in newRoute.stopsInOrder:
+        if x in newRoute.students:
+            times.append(x.busTime)
+        if x in newRoute.schools:
+            times.append(x.startTime)
+    newRoute.stopsInOrder = [newRoute.stopsInOrder[x] for x in np.argsort(times)]
+    if len(newRoute.schools)>0:
+        newRoute.busTimes = np.sort(times)
+        #newRoute.generateRouteTimes(masterDistanceMatrix)
+        newRoute.distanceStats(masterDistanceMatrix)
+        routes.append(newRoute)
+    
+with open('baseRouteOutputData.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(['id', 'pref1', 'pref2', 'pref3', 'pref4', 'pref5', 'lockedIn', 'address', 'city', 'state', 'zipCode', 'bussing', 'placementName', 'timeOfDay'])
-    for student in studentObjects:
-        writer.writerow([student.id, student.pref1,student.pref2,student.pref3,student.pref4,student.pref5,student.lockedIn, student.address, student.city, student.state, student.zipCode,  student.bussing, student.placementName, student.timeOfDay])
-'''
+    for route in routes:
+        writer.writerow(['route #', '# of schools'])
+        writer.writerow([route.busNumber, route.updateSchools()])
+        writer.writerow(['id', 'school name', 'time of arrival', 'start time', 'duration'])
+        for i in route.stopsInOrder:
+            if i in route.schools:
+                writer.writerow(['DROPOFF', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
+            if i in route.students:
+                writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
+        writer.writerow([])
+        writer.writerow(['mean', 'median', 'standard deviation', 'max', 'min'])
+        writer.writerow([Time.Time(route.mean), Time.Time(route.median), Time.Time(route.std), Time.Time(route.max), Time.Time(route.min)])
+        writer.writerow([])

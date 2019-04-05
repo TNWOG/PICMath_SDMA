@@ -125,17 +125,19 @@ for i in range(numAmRoutes):
     #amRoutes[i].BFRouting(masterDistanceMatrix)
     #for student in amRoutes[i].students:
         #print(student.school.name)
+    amRoutes[i].generateRouteTimes(masterDistanceMatrix)
     print(Time.Time(amRoutes[i].distanceStats(masterDistanceMatrix)))
 for i in range(numPmRoutes):
     pmRoutes[i].students = pmClusterMatrix[i].copy()
     pmRoutes[i].routeWithStartTimes(masterDistanceMatrix)
     #pmRoutes[i].BFRouting(masterDistanceMatrix)
+    pmRoutes[i].generateRouteTimes(masterDistanceMatrix)
     print(Time.Time(pmRoutes[i].distanceStats(masterDistanceMatrix)))
 
 print("Swap")
 #improve the routes with random swapping
-amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 5000)
-pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 5000)
+amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 50)
+pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 50)
 
 import smopy
 map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
@@ -147,9 +149,9 @@ for route in routeObjects:
     #simplify routes
     #route.simplify()
     #plot route
-    route.generateRouteTimes(masterDistanceMatrix)
     route.plot(map)
     print(*route.stopsInOrder)
+    route.generateRouteTimes(masterDistanceMatrix)
     print(Time.Time(route.distanceStats(masterDistanceMatrix)))
 
 

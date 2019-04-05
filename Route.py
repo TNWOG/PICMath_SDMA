@@ -130,8 +130,9 @@ class Route:
     def updateSchools(self):
         newSchools = []
         for student in self.students:
-            if student.school not in newSchools:
-                newSchools.append(student.school)
+            if student.school is not None:
+                if student.school not in newSchools:
+                    newSchools.append(student.school)
         self.schools = newSchools.copy()
         return len(self.schools)
 
@@ -181,7 +182,11 @@ class Route:
             schoolIndex = self.__stopIndex(student.school)
 
             for i in range(studentIndex, schoolIndex):
-                studentDistance += dataMatrix[self.stopsInOrder[i].distanceMatrixPosition][self.stopsInOrder[i + 1].distanceMatrixPosition]
+                time_a, time_b = self.busTimes[i],self.busTimes[i+1]
+                time_a_sum = (time_a.hour*60+time_a.minute)*60
+                time_b_sum = (time_b.hour*60+time_b.minute)*60
+                time_diff = time_b_sum-time_a_sum         
+                studentDistance += time_diff
             #add the students time to the total
             self.studentDistances = np.append(self.studentDistances, studentDistance)
         self.mean = np.mean(self.studentDistances)
@@ -548,6 +553,7 @@ class Route:
         self.stopsInOrder = objectsInRoute.copy()
         
     def generateRouteTimes(self, distMatrix):
+        self.busTimes = []
         lastStop = self.stopsInOrder[-1]
         curTime = lastStop.startTime
         idx = self.stopsInOrder.index(lastStop)
@@ -557,9 +563,7 @@ class Route:
             durationTime = Time.Time(duration)
             curTime = curTime-durationTime
             if self.stopsInOrder[idx-1] in self.schools:
-                print(curTime, self.stopsInOrder[idx-1].startTime)
                 if curTime>self.stopsInOrder[idx-1].startTime:
-                    print("reset")
                     curTime = self.stopsInOrder[idx-1].startTime
             self.busTimes.insert(0,curTime)
             idx -= 1
