@@ -125,12 +125,12 @@ for i in range(numAmRoutes):
     #amRoutes[i].BFRouting(masterDistanceMatrix)
     #for student in amRoutes[i].students:
         #print(student.school.name)
-    print(Time.Time(amRoutes[i].averageDistance(masterDistanceMatrix)))
+    print(Time.Time(amRoutes[i].distanceStats(masterDistanceMatrix)))
 for i in range(numPmRoutes):
     pmRoutes[i].students = pmClusterMatrix[i].copy()
     pmRoutes[i].routeWithStartTimes(masterDistanceMatrix)
     #pmRoutes[i].BFRouting(masterDistanceMatrix)
-    print(Time.Time(pmRoutes[i].averageDistance(masterDistanceMatrix)))
+    print(Time.Time(pmRoutes[i].distanceStats(masterDistanceMatrix)))
 
 print("Swap")
 #improve the routes with random swapping
@@ -148,18 +148,24 @@ for route in routeObjects:
     #route.simplify()
     #plot route
     route.generateRouteTimes(masterDistanceMatrix)
-    #route.plot(map)
+    route.plot(map)
     print(*route.stopsInOrder)
-    print(Time.Time(route.averageDistance(masterDistanceMatrix)))
+    print(Time.Time(route.distanceStats(masterDistanceMatrix)))
 
 
 #routes
 with open('routeOutputData.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for route in routeObjects:
-        writer.writerow([route.busNumber, route.averageDistance(masterDistanceMatrix), route.updateSchools()])
+        writer.writerow(['route #', '# of schools'])
+        writer.writerow([route.busNumber, route.updateSchools()])
+        writer.writerow(['id', 'school name', 'time of arrival', 'start time', 'duration'])
         for i in route.stopsInOrder:
             if i in route.schools:
-                writer.writerow(['school', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
+                writer.writerow(['DROPOFF', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
             if i in route.students:
-                writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)]])
+                writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
+        writer.writerow([])
+        writer.writerow(['mean', 'median', 'standard deviation', 'max', 'min'])
+        writer.writerow([Time.Time(route.mean), Time.Time(route.median), Time.Time(route.std), Time.Time(route.max), Time.Time(route.min)])
+        writer.writerow([])

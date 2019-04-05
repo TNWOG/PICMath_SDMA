@@ -109,6 +109,12 @@ class Route:
         self.stopsInOrder = []
         self.distanceMatrix = []
         self.busTimes = []
+        self.studentDistances = np.array([])
+        self.mean = 0
+        self.median = 0
+        self.std = 0
+        self.max = 0
+        self.min = 0
 
     #copy constructor
     def copy(self):
@@ -163,26 +169,27 @@ class Route:
         
         #store the route in the route object's stopsInOrder
         self.stopsInOrder = route
-
         
     #finds the average distance. 
-    def averageDistance(self, dataMatrix):
-        numStudents = len(self.students)
-        cummulativeDistance = 0
-
+    def distanceStats(self, dataMatrix):
         #find the length of the bus ride for every student
+        self.studentDistances = np.array([])
         for student in self.students:
             studentDistance = 0
             #find the index of the student and school
             studentIndex = self.__stopIndex(student)
             schoolIndex = self.__stopIndex(student.school)
 
-            for i in range(studentIndex, schoolIndex - 1):
+            for i in range(studentIndex, schoolIndex):
                 studentDistance += dataMatrix[self.stopsInOrder[i].distanceMatrixPosition][self.stopsInOrder[i + 1].distanceMatrixPosition]
             #add the students time to the total
-            cummulativeDistance += studentDistance
-        averageDistance = cummulativeDistance / numStudents
-        return averageDistance
+            self.studentDistances = np.append(self.studentDistances, studentDistance)
+        self.mean = np.mean(self.studentDistances)
+        self.median = np.median(self.studentDistances)
+        self.std = np.std(self.studentDistances)
+        self.max = np.max(self.studentDistances)
+        self.min = np.min(self.studentDistances)
+        return np.mean(self.studentDistances)
         
 
     #finds the length of the route from start to finish

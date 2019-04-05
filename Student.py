@@ -39,6 +39,8 @@ class Student:
         self.longitude = -1
         self.latitue = -1
         self.distanceMatrixPosition = -1
+        self.originalRoute = -1
+        self.originalPickup = -1
 
 
     def __eq__(self, other):
