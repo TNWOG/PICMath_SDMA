@@ -145,14 +145,17 @@ map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
 #assign improved routes to the routeObjects array
 routeObjects = amRoutes + pmRoutes
 
+allRouteTimes = []
+
 for route in routeObjects:
     #simplify routes
     #route.simplify()
     #plot route
     route.generateRouteTimes(masterDistanceMatrix)
-    #route.plot(map)
+    route.plot(map)
     print(*route.stopsInOrder)
     print(Time.Time(route.distanceStats(masterDistanceMatrix)))
+
 
 
 #routes
@@ -171,3 +174,14 @@ with open('routeOutputData.csv', 'w', newline='') as csvfile:
         writer.writerow(['mean', 'median', 'standard deviation', 'max', 'min'])
         writer.writerow([Time.Time(route.mean), Time.Time(route.median), Time.Time(route.std), Time.Time(route.max), Time.Time(route.min)])
         writer.writerow([])
+
+with open('routeStudentInfo.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(['id', 'school name', 'time of arrival', 'start time', 'duration'])
+    for route in routeObjects:
+        for i in route.stopsInOrder:
+            if i in route.schools:
+                writer.writerow(['DROPOFF', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
+            if i in route.students:
+                writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
+        
