@@ -4,6 +4,7 @@ from copy import deepcopy
 import School
 import Time
 import Stop
+import random
 
 class Route:
     #import Student
@@ -531,7 +532,7 @@ class Route:
                 #add to list of potentially routable students if they are not yet routed
                 if student not in objectsInRoute:
                     potentialStudents.append(student)
-                        
+            
             #find the unrouted student that is closest to the end of the route
             minStudent = potentialStudents[0]
             minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][potentialStudents[0].distanceMatrixPosition]
@@ -546,11 +547,42 @@ class Route:
             route.append(Stop.Stop(minStudent, visitTime))
             objectsInRoute.append(minStudent)
             #print(minStudent)
-
+        #create the original route
         #flip the route
         objectsInRoute = objectsInRoute[::-1]
         #add final route to the route's object
         self.stopsInOrder = objectsInRoute.copy()
+        self.generateRouteTimes(dataMatrix)
+        #find the fist school in the route
+        startSchools = 0
+        for stop in self.stopsInOrder:
+            if type(stop) == School.School:
+                startSchools = self.stopsInOrder.index(stop)
+                break
+        #begin swaps
+        for i in range(100):
+            self.distanceStats(dataMatrix)
+            oldRoute = self.stopsInOrder.copy()
+            oldMetric = self.mean
+            newRoute = objectsInRoute.copy()
+            indexes = range(startSchools)
+            sample = random.sample(indexes, 2)
+            index1 = sample[0]
+            index2 = sample[1]
+            temp = newRoute[index1]
+            newRoute[index1] = newRoute[index2]
+            newRoute[index2] = temp
+            #save the new route to the route object
+            self.stopsInOrder = newRoute
+            self.distanceStats(dataMatrix)
+            newMetric = self.mean
+            if (oldMetric < newMetric):
+                self.stopsInOrder = oldRoute
+            
+            
+                
+        
+        
         
     def generateRouteTimes(self, distMatrix):
         self.busTimes = []

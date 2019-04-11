@@ -11,7 +11,7 @@ class Time:
             self.second = 0
         else:
             seconds = round(data)
-            self.minute, self.second = divmod(data, 60)
+            self.minute, self.second = divmod(seconds, 60)
             self.hour, self.minute = divmod(self.minute, 60)
             if (self.hour == 0):
                 self.hour == 24
@@ -106,7 +106,10 @@ class Time:
             return False
         
     def __ne__(self, other):
-        return not self == other
+        if (self.hour == other.hour and self.minute == other.minute and self.second == other.second):
+            return False
+        else:
+            return True
 
     def __lt__(self, other):
         if (self.hour < other.hour):
