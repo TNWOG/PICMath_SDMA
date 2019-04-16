@@ -515,7 +515,7 @@ class Route:
         
         #add the last school, but check if the last school is also the first
         if (len(schools) == 1):
-            route.append(Stop.Stop(schools[0], schools[0].time))
+            route.append(Stop.Stop(schools[0], schools[0].startTime))
             objectsInRoute.append(schools[0])
         else:
             endOfRouteVisitTime = route[len(route)-1].time
@@ -560,7 +560,7 @@ class Route:
                 startSchools = self.stopsInOrder.index(stop)
                 break
         #begin swaps
-        for i in range(100):
+        for i in range(50):
             self.distanceStats(dataMatrix)
             oldRoute = self.stopsInOrder.copy()
             oldMetric = self.mean
