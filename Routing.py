@@ -152,7 +152,7 @@ for route in routeObjects:
     #route.simplify()
     #plot route
     route.generateRouteTimes(masterDistanceMatrix)
-    #route.plot(map)
+    route.plot(map)
     print(*route.stopsInOrder)
     print(Time.Time(route.distanceStats(masterDistanceMatrix)))
 
