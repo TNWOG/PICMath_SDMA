@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import Time
+import csv
 
 
 data = pd.read_csv("baseRouteStudentInfo_generated.csv")
@@ -38,8 +39,12 @@ ax.set_ylabel('duration of ride (seconds)')
 ax.set_xlabel('route number')
 ax.boxplot(routeBusTimes, widths=0.7, meanline=True, showmeans=True)
 plt.savefig('routeBoxplot.png')
-
-
+baseBusTimes = np.array(baseBusTimes)
+with open('finalRouteStats.csv', 'w', newline='') as csvfile:
+    writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(['name', 'mean', 'median', 'standard deviation', 'max', 'min'])
+    writer.writerow(['original', Time.Time(baseBusTimes.mean()), Time.Time(np.median(baseBusTimes)), Time.Time(np.std(baseBusTimes)), Time.Time(baseBusTimes.max()), Time.Time(baseBusTimes.min())])
+    writer.writerow(['algorithm', Time.Time(busTimes.mean()), Time.Time(np.median(busTimes)), Time.Time(np.std(busTimes)), Time.Time(busTimes.max()), Time.Time(busTimes.min())])
 
 data = pd.read_csv("studentOutputData.csv")
 num1 = 0

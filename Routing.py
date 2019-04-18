@@ -184,4 +184,4 @@ with open('routeStudentInfo.csv', 'w', newline='') as csvfile:
                 writer.writerow(['DROPOFF', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
             if i in route.students:
                 writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
-        
+        writer.writerow(['','','','',"NEXT"])
