@@ -1,0 +1,2 @@
+This folder is for the routeOuputData.csv files after running a trial. I will be formatting all files names with the convention of "#ofInterRouteSwaps,parameterOfInterRouteOptimizaiton,#numberOfIntraRouteSwaps,parameterOfIntraRouteOptimizaiton"
+If any other parameters, like school start times or number of busses, are changed, please create a new subfolder containing the changed input csv and the route output csv.

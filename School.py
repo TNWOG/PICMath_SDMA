@@ -25,10 +25,10 @@ class School:
             return True
         return False
     
+    #overloading less than and greater than for sorting based on start times
     def __lt__(self, other):
         return self.startTime < other.startTime
 
-#overloading less than and greater than for sorting based on start times
     def __gt__(self, other):
         return self.startTime > other.startTime
 
@@ -36,7 +36,7 @@ class School:
         return hash(self.id)
 
     def __str__(self):
-        return self.name
+        return self.name + ' ' + str(self.startTime)
 
     def addStudent(self, student):
         if (self.full):
