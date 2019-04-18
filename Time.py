@@ -100,7 +100,7 @@ class Time:
 #========================boolean operators======================================
     #equality requires the hours, minutes, and seconds to match
     def __eq__(self, other):
-        if (type(other) != 'Time'):
+        if (type(other) != Time):
             return False
         if (self.hour == other.hour and self.minute == other.minute and self.second == other.second):
             return True
@@ -108,7 +108,7 @@ class Time:
             return False
         
     def __ne__(self, other):
-        if (type(other) != 'Time'):
+        if (type(other) != Time):
             return True
         if (self.hour == other.hour and self.minute == other.minute and self.second == other.second):
             return False
@@ -116,7 +116,7 @@ class Time:
             return True
 
     def __lt__(self, other):
-        if (type(other) != 'Time'):
+        if (type(other) != Time):
             return False
         if (self.hour < other.hour):
             return True
@@ -128,7 +128,7 @@ class Time:
             return False
         
     def __gt__(self, other):
-        if (type(other) != 'Time'):
+        if (type(other) != Time):
             return False
         if (self.hour > other.hour):
             return True

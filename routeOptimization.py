@@ -25,8 +25,8 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
         #route2oldTime = route2.averageDistance(dataMatrix)
         route1.generateRouteTimes(dataMatrix)
         route2.generateRouteTimes(dataMatrix)
-        oldMetric1 = route1.updateSchools()
-        oldMetric2 = route2.updateSchools()
+        oldMetric1 = route1.mean
+        oldMetric2 = route2.mean
         
         #pick a student from each route to swap
         route1student = deepcopy(route1.students[random.randint(0, len(route1.students)-1)])
@@ -46,12 +46,12 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
         #route2newTime = route2.averageDistance(dataMatrix)
         route1.generateRouteTimes(dataMatrix)
         route2.generateRouteTimes(dataMatrix)
-        newMetric1 = route1.updateSchools()
-        newMetric2 = route2.updateSchools()
+        newMetric1 = route1.mean
+        newMetric2 = route2.mean
 
         #set the new routes if they are faster
         #if ((route1newTime < route1oldTime) and (route2newTime < route2oldTime)):
-        if (newMetric1 + newMetric2 < oldMetric1 + oldMetric2):
+        if (newMetric1 < oldMetric1 and newMetric2 < oldMetric2):
             routeObjects = deepcopy(routeArray)
     return routeObjects
 

@@ -136,8 +136,8 @@ for i in range(numPmRoutes):
 
 print("Swap")
 #improve the routes with random swapping
-amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 10000)
-pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 10000)
+#amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 100)
+#pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 100)
 
 import smopy
 map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))

@@ -461,17 +461,20 @@ class Route:
 
         #loop for adding students in between schools on route
         for i in range(len(schools)-1):
-            #add the first school to the route with the visit time set to the start time
+            #add the first school to the route with the visit time set to 10 minutes before the start time
             if (i == 0):
-                route.append(Stop.Stop(schools[0], schools[0].startTime))
+                route.append(Stop.Stop(schools[0], schools[0].startTime - Time.Time("0:10")))
                 objectsInRoute.append(schools[0])
                 #print(schools[0])
-            #for all other schools, add the school to the route and set the visit time to the time it takes to drive to there
+            #for all other schools, add the school to the route and set the visit time to the time it takes to drive to there, unless that time is after the school start time
             else:
                 visitTime = route[len(route)-1].time - Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][schools[i].distanceMatrixPosition])
-                route.append(Stop.Stop(schools[i], visitTime))
-                objectsInRoute.append(schools[i])
-                #print(schools[i])
+                if (visitTime > schools[i].startTime):
+                    route.append(Stop.Stop(schools[i], schools[i].startTime))
+                    objectsInRoute.append(schools[i])
+                else:
+                    route.append(Stop.Stop(schools[i], visitTime))
+                    objectsInRoute.append(schools[i])
             
             #the next loop find the as many students that will fit between school i and i+1
             #students are chosen from all unrouted students that attend schools in the route so far
@@ -560,24 +563,32 @@ class Route:
                 startSchools = self.stopsInOrder.index(stop)
                 break
         #begin swaps
-        for i in range(50):
+        for i in range(500):
+            #create copy of route to revert back to 
+            oldRoute = deepcopy(self.stopsInOrder)
+            #generate route times for the old routes
+            self.generateRouteTimes(dataMatrix)
             self.distanceStats(dataMatrix)
-            oldRoute = self.stopsInOrder.copy()
             oldMetric = self.mean
-            newRoute = objectsInRoute.copy()
+            #create new route
+            newRoute = deepcopy(self.stopsInOrder)
+            #generate the indexes to swap
             indexes = range(startSchools)
             sample = random.sample(indexes, 2)
+            #swap
             index1 = sample[0]
             index2 = sample[1]
             temp = newRoute[index1]
             newRoute[index1] = newRoute[index2]
             newRoute[index2] = temp
-            #save the new route to the route object
+            #save the new route to the route object in order to measure the time
             self.stopsInOrder = newRoute
+            self.generateRouteTimes(dataMatrix)
             self.distanceStats(dataMatrix)
             newMetric = self.mean
+            #if the old route was better, revert to the old route
             if (oldMetric < newMetric):
-                self.stopsInOrder = oldRoute
+                self.stopsInOrder = deepcopy(oldRoute)
             
             
                 
@@ -587,9 +598,10 @@ class Route:
     def generateRouteTimes(self, distMatrix):
         self.busTimes = []
         lastStop = self.stopsInOrder[-1]
-        curTime = lastStop.startTime
+        curTime = lastStop.startTime - Time.Time("0:10")
         idx = self.stopsInOrder.index(lastStop)
         self.busTimes.insert(0,curTime)
+        #create preliminary route times
         while idx > 0:
             duration = distMatrix[self.stopsInOrder[idx-1].distanceMatrixPosition][self.stopsInOrder[idx].distanceMatrixPosition]
             durationTime = Time.Time(duration)
