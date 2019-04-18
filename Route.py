@@ -563,7 +563,7 @@ class Route:
                 startSchools = self.stopsInOrder.index(stop)
                 break
         #begin swaps
-        for i in range(500):
+        for i in range(1000):
             #create copy of route to revert back to 
             oldRoute = deepcopy(self.stopsInOrder)
             #generate route times for the old routes
