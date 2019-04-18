@@ -93,7 +93,7 @@ for i in busRouteNums:
     newRoute.stopsInOrder = [newRoute.stopsInOrder[x] for x in np.argsort(times)]
     if len(newRoute.schools)>0:
         newRoute.busTimes = np.sort(times)
-        newRoute.generateRouteTimes(masterDistanceMatrix)
+        #newRoute.generateRouteTimes(masterDistanceMatrix)
         newRoute.distanceStats(masterDistanceMatrix)
         routes.append(newRoute)
     
@@ -121,4 +121,5 @@ with open('baseRouteStudentInfo.csv', 'w', newline='') as csvfile:
             if i in route.schools:
                 writer.writerow(['DROPOFF', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
             if i in route.students:
-                writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
+                if i.placementName != "n/a":
+                    writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
