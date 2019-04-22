@@ -3,7 +3,7 @@ import pandas as pd
 import Time
 class School:
 
-    def __init__(self, id, name, capacity, address, city, state, zipCode, timeOfDay, startTime):
+    def __init__(self, id, name, capacity, address, city, state, zipCode, timeOfDay, startTime, endTime):
         self.id = id
         self.name = name
         self.capacity = capacity
@@ -13,6 +13,7 @@ class School:
         self.zipCode = zipCode
         self.timeOfDay = timeOfDay
         self.startTime = Time.Time(startTime)
+        self.endTime = Time.Time(endTime)
         #set variables not set in by parameters to dummy data to show that it is unset
         self.full = False
         self.longitude = -1

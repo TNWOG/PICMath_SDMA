@@ -54,7 +54,7 @@ while (x < len(studentMatrix)):
 x = 0
 while (x < len(schoolMatrix)):
     schoolObjects.append(School.School(schoolMatrix[x][0], schoolMatrix[x][1], schoolMatrix[x][2], schoolMatrix[x][3], schoolMatrix[x][4], schoolMatrix[x][5],
-                                  schoolMatrix[x][6], schoolMatrix[x][7], schoolMatrix[x][8]))
+                                  schoolMatrix[x][6], schoolMatrix[x][7], schoolMatrix[x][8], schoolMatrix[x][9]))
     x += 1
 
 #create routes from file
@@ -126,18 +126,22 @@ for i in range(numAmRoutes):
     #for student in amRoutes[i].students:
         #print(student.school.name)
     amRoutes[i].generateRouteTimes(masterDistanceMatrix)
+    print(*amRoutes[i].stopsInOrderAm)
+    print(*amRoutes[i].stopsInOrderPm)
     print(Time.Time(amRoutes[i].distanceStats(masterDistanceMatrix)))
 for i in range(numPmRoutes):
     pmRoutes[i].students = pmClusterMatrix[i].copy()
     pmRoutes[i].routeWithStartTimes(masterDistanceMatrix)
     #pmRoutes[i].BFRouting(masterDistanceMatrix)
     pmRoutes[i].generateRouteTimes(masterDistanceMatrix)
+    print(*pmRoutes[i].stopsInOrderAm)
+    print(*pmRoutes[i].stopsInOrderPm)
     print(Time.Time(pmRoutes[i].distanceStats(masterDistanceMatrix)))
 
 print("Swap")
 #improve the routes with random swapping
-#amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 1000)
-#pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 1000)
+amRoutes = ro.randomSwaps(amRoutes, masterDistanceMatrix, 1000)
+pmRoutes = ro.randomSwaps(pmRoutes, masterDistanceMatrix, 1000)
 
 import smopy
 map = smopy.Map(( 44.82,-92.02, 44.95,-91.8))
@@ -153,7 +157,8 @@ for route in routeObjects:
     #plot route
     route.generateRouteTimes(masterDistanceMatrix)
     route.plot(map)
-    print(*route.stopsInOrder)
+    print(*route.stopsInOrderAm)
+    print(*route.stopsInOrderPm)
     print(Time.Time(route.distanceStats(masterDistanceMatrix)))
 
 
@@ -165,11 +170,18 @@ with open('routeOutputData.csv', 'w', newline='') as csvfile:
         writer.writerow(['route #', '# of schools'])
         writer.writerow([route.busNumber, route.updateSchools()])
         writer.writerow(['id', 'school name', 'time of arrival', 'start time', 'duration'])
-        for i in route.stopsInOrder:
+        writer.writerow(['Pick Up Route'])
+        for i in route.stopsInOrderAm:
             if i in route.schools:
-                writer.writerow(['DROPOFF', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
+                writer.writerow(['DROPOFF', i.name, route.busPickUpTimes[route.stopsInOrderAm.index(i)], i.startTime])
             if i in route.students:
-                writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
+                writer.writerow([i.id, i.placementName, route.busPickUpTimes[route.stopsInOrderAm.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
+        writer.writerow(['Drop off Route'])
+        for i in route.stopsInOrderPm:
+            if i in route.schools:
+                writer.writerow(['PICKUP', i.name, route.busDropOffTimes[route.stopsInOrderPm.index(i)], i.endTime])
+            if i in route.students:
+                writer.writerow([i.id, i.placementName, route.busDropOffTimes[route.stopsInOrderPm.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)+len(route.students)])])
         writer.writerow([])
         writer.writerow(['mean', 'median', 'standard deviation', 'max', 'min'])
         writer.writerow([Time.Time(route.mean), Time.Time(route.median), Time.Time(route.std), Time.Time(route.max), Time.Time(route.min)])
@@ -177,11 +189,16 @@ with open('routeOutputData.csv', 'w', newline='') as csvfile:
 
 with open('routeStudentInfo.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(['id', 'school name', 'time of arrival', 'start time', 'duration'])
+    writer.writerow(['id', 'school name', 'time of arrival', 'start time', 'time of drop off', 'end time', 'duration'])
     for route in routeObjects:
-        for i in route.stopsInOrder:
+        for i in route.stopsInOrderAm:
             if i in route.schools:
-                writer.writerow(['DROPOFF', i.name, route.busTimes[route.stopsInOrder.index(i)], i.startTime])
+                writer.writerow(['DROPOFF', i.name, route.busPickUpTimes[route.stopsInOrderAm.index(i)], i.startTime])
             if i in route.students:
-                writer.writerow([i.id, i.placementName, route.busTimes[route.stopsInOrder.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
+                writer.writerow([i.id, i.placementName, route.busPickUpTimes[route.stopsInOrderAm.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)])])
+        for i in route.stopsInOrderPm:
+            if i in route.schools:
+                writer.writerow(['PICKUP', i.name, route.busDropOffTimes[route.stopsInOrderPm.index(i)], i.endTime])
+            if i in route.students:
+                writer.writerow([i.id, i.placementName, route.busDropOffTimes[route.stopsInOrderPm.index(i)], "",Time.Time(route.studentDistances[route.students.index(i)+len(route.students)])])
         writer.writerow(['','','','',"NEXT"])

@@ -52,6 +52,7 @@ def randomSwaps(routeObjects, dataMatrix, numSwaps):
         #set the new routes if they are faster
         #if ((route1newTime < route1oldTime) and (route2newTime < route2oldTime)):
         if (newMetric1 < oldMetric1 and newMetric2 < oldMetric2):
+            print("improve", newMetric1, oldMetric1, newMetric2, )
             routeObjects = deepcopy(routeArray)
     return routeObjects
 

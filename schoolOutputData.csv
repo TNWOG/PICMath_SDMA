@@ -1,12 +1,12 @@
-id,name,capacity,address,city,state,zipCode,timeOfDay,startTime
-1,RIVER HEIGHTS AM,22,615 24th Avenue W,Menomonie,WI,54751,AM,8:45
-2,RIVER HEIGHTS PM,14,615 24th Avenue W,Menomonie,WI,54751,PM,12:30
-3,LITTLE SPROUTS,24,502 21st Street N,Menomonie,WI,54751,AM,8:30
-4,ABC'S DAYCARE,18,1820 Talen Street,Menomonie,WI,54751,AM,8:00
-5,BOUNCING BABIES AM,15,3020 Schneider Avenue E,Menomonie,WI,54751,AM,8:30
-6,BOUNCING BABIES PM,15,3020 Schneider Avenue E,Menomonie,WI,54751,PM,12:30
-7,MILESTONES EDUC AM,21,2516 Hils Court,Menomonie,WI,54751,AM,8:15
-8,MILESTONES EDUC PM,21,2517 Hils Court,Menomonie,WI,54751,PM,12:10
-9,ST JOSEPH'S,18,910 Wilson Avenue,Menomonie,WI,54751,PM,11:50
-10,SUNSHINE LEARNI,20,1921 Wilson Street,Menomonie,WI,54751,AM,8:05
-11,UW STOUT CHILD,18,811 6th Street East,Menomonie,WI,54751,AM,8:45
+id,name,capacity,address,city,state,zipCode,timeOfDay,startTime,endTime
+1,RIVER HEIGHTS AM,22,615 24th Avenue W,Menomonie,WI,54751,AM,8:45,11:25
+2,RIVER HEIGHTS PM,14,615 24th Avenue W,Menomonie,WI,54751,PM,12:30,3:20
+3,LITTLE SPROUTS,24,502 21st Street N,Menomonie,WI,54751,AM,8:30,11:30
+4,ABC'S DAYCARE,18,1820 Talen Street,Menomonie,WI,54751,AM,8:00,11:00
+5,BOUNCING BABIES AM,15,3020 Schneider Avenue E,Menomonie,WI,54751,AM,8:30,11:45
+6,BOUNCING BABIES PM,15,3020 Schneider Avenue E,Menomonie,WI,54751,PM,12:00,3:45
+7,MILESTONES EDUC AM,21,2516 Hils Court,Menomonie,WI,54751,AM,8:15,11:15
+8,MILESTONES EDUC PM,21,2517 Hils Court,Menomonie,WI,54751,PM,12:10,3:10
+9,ST JOSEPH'S,18,910 Wilson Avenue,Menomonie,WI,54751,PM,11:50,3:00
+10,SUNSHINE LEARNI,20,1921 Wilson Street,Menomonie,WI,54751,AM,8:05,11:30
+11,UW STOUT CHILD,18,811 6th Street East,Menomonie,WI,54751,AM,8:45,11:45

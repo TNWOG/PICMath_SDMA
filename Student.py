@@ -35,6 +35,7 @@ class Student:
         self.placementId = -1
         self.school = None
         self.busTime = Time.Time(0)
+        self.busDropoffTime = Time.Time(0)
         self.busRoute = -1
         self.longitude = -1
         self.latitue = -1

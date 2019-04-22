@@ -107,9 +107,11 @@ class Route:
         #not set by parameters
         self.students = []
         self.schools = []
-        self.stopsInOrder = []
+        self.stopsInOrderAm = []
+        self.stopsInOrderPm = []
         self.distanceMatrix = []
-        self.busTimes = []
+        self.busPickUpTimes = []
+        self.busDropOffTimes = []
         self.studentDistances = np.array([])
         self.mean = 0
         self.median = 0
@@ -122,7 +124,8 @@ class Route:
         newRoute = Route(self.busNumber, self.capacity, self.timeOfDay)
         newRoute.students = self.students.copy()
         newRoute.schools = self.schools.copy()
-        newRoute.stopsInOrder = self.stopsInOrder.copy()
+        newRoute.stopsInOrderAm = self.stopsInOrderAm.copy()
+        newRoute.stopsInOrderPm = self.stopsInOrderPm.copy()
         newRoute.distanceMatrix = self.distanceMatrix.copy()
         return newRoute
 
@@ -176,20 +179,31 @@ class Route:
     def distanceStats(self, dataMatrix):
         #find the length of the bus ride for every student
         self.studentDistances = np.array([])
-        for student in self.students:
-            studentDistance = 0
-            #find the index of the student and school
-            studentIndex = self.__stopIndex(student)
-            schoolIndex = self.__stopIndex(student.school)
-
-            for i in range(studentIndex, schoolIndex):
-                time_a, time_b = self.busTimes[i],self.busTimes[i+1]
-                time_a_sum = (time_a.hour*60+time_a.minute)*60
-                time_b_sum = (time_b.hour*60+time_b.minute)*60
-                time_diff = time_b_sum-time_a_sum         
-                studentDistance += time_diff
-            #add the students time to the total
-            self.studentDistances = np.append(self.studentDistances, studentDistance)
+        #am route times
+        if (len(self.busPickUpTimes) > 0):
+            for student in self.students:
+                studentDistance = 0
+                #find the index of the student and school
+                studentIndex = self.stopsInOrderAm.index(student)
+                schoolIndex = self.stopsInOrderAm.index(student.school)
+                #compute difference
+                time_diff = self.busPickUpTimes[schoolIndex] - self.busPickUpTimes[studentIndex]
+                studentDistance = (time_diff.hour*60+time_diff.minute)*60
+                #add the students time to the total
+                self.studentDistances = np.append(self.studentDistances, studentDistance)
+        #pm routes
+        if (len(self.busDropOffTimes) > 0):
+            for student in self.students:
+                studentDistance = 0
+                #find the index of the student and school
+                studentIndex = self.stopsInOrderPm.index(student)
+                schoolIndex = self.stopsInOrderPm.index(student.school)
+                #compute difference
+                time_diff = self.busDropOffTimes[studentIndex] - self.busDropOffTimes[schoolIndex]
+                studentDistance = (time_diff.hour*60+time_diff.minute)*60
+                #add the students time to the total
+                self.studentDistances = np.append(self.studentDistances, studentDistance)
+     
         self.mean = np.mean(self.studentDistances)
         self.median = np.median(self.studentDistances)
         self.std = np.std(self.studentDistances)
@@ -215,7 +229,7 @@ class Route:
         markers = []
         colors = ['yellow', 'green', 'blue', 'red', 'magenta', 'crimson', 'cyan', 'orange', 'navy', 'wheat', 'silver', 'plum', 'black']
         ax = map.show_mpl(figsize=(8,6))
-        for e in self.stopsInOrder:
+        for e in self.stopsInOrderAm:
             x, y = map.to_pixels(e.latitue,e.longitude)
             lat.append(x)
             long.append(y)
@@ -554,24 +568,24 @@ class Route:
         #flip the route
         objectsInRoute = objectsInRoute[::-1]
         #add final route to the route's object
-        self.stopsInOrder = objectsInRoute.copy()
-        self.generateRouteTimes(dataMatrix)
+        self.stopsInOrderAm = objectsInRoute.copy()
+        self.generateRouteTimesPickUp(dataMatrix)
         #find the fist school in the route
         startSchools = 0
-        for stop in self.stopsInOrder:
+        for stop in self.stopsInOrderAm:
             if type(stop) == School.School:
-                startSchools = self.stopsInOrder.index(stop)
+                startSchools = self.stopsInOrderAm.index(stop)
                 break
-        #begin swaps
-        for i in range(1000):
+        '''#begin swaps
+        for i in range(200):
             #create copy of route to revert back to 
-            oldRoute = deepcopy(self.stopsInOrder)
+            oldRoute = deepcopy(self.stopsInOrderAm)
             #generate route times for the old routes
-            self.generateRouteTimes(dataMatrix)
+            self.generateRouteTimesPickUp(dataMatrix)
             self.distanceStats(dataMatrix)
             oldMetric = self.mean
             #create new route
-            newRoute = deepcopy(self.stopsInOrder)
+            newRoute = deepcopy(self.stopsInOrderAm)
             #generate the indexes to swap
             indexes = range(startSchools)
             sample = random.sample(indexes, 2)
@@ -582,38 +596,238 @@ class Route:
             newRoute[index1] = newRoute[index2]
             newRoute[index2] = temp
             #save the new route to the route object in order to measure the time
-            self.stopsInOrder = newRoute
+            self.stopsInOrderAm = newRoute
+            self.generateRouteTimesPickUp(dataMatrix)
+            self.distanceStats(dataMatrix)
+            newMetric = self.mean
+            #if the old route was better, revert to the old route
+            if (oldMetric < newMetric):
+                self.stopsInOrderAm = deepcopy(oldRoute)'''
+        #=============================PM portion of route=======================
+        #declare/define variables
+        #the window of time that we can arrive before school starts
+        window = Time.Time("0:15")
+        #the array of Stop objects
+        route = []
+        #the array of Student and School objects that are encapsulated into Stops in the route array
+        objectsInRoute = []
+
+        #assign the students objects to the route
+        for student in self.students:
+            student.busRoute = self.busNumber
+
+        #define school related variables
+        #set the list of schools on the route to all the student's schools
+        self.updateSchools()
+        #order the schools based on start times from latest to earliest
+        schools = self.schools.copy()
+        schools.sort(key=lambda x: x.endTime)
+        #create a 2d array where the first subarray is all the students that attend the first school in schools array
+        studentsInSchools = []
+        for school in schools:
+            schoolArray = []
+            for student in self.students:
+                if (student.school == school):
+                    schoolArray.append(student)
+            studentsInSchools.append(schoolArray)
+
+        #loop for adding students in between schools on route
+        for i in range(len(schools)-1):
+            #add the first school to the route with the visit time
+            if (i == 0):
+                route.append(Stop.Stop(schools[0], schools[0].endTime))
+                objectsInRoute.append(schools[0])
+                #print(schools[0])
+            #for all other schools, add the school to the route and set the visit time to the time it takes to drive to there, unless that time is after the school start time
+            else:
+                visitTime = route[len(route)-1].time + Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][schools[i].distanceMatrixPosition])
+                if (visitTime < schools[i].endTime):
+                    route.append(Stop.Stop(schools[i], schools[i].endTime))
+                    objectsInRoute.append(schools[i])
+                    #print(schools[i])
+                else:
+                    route.append(Stop.Stop(schools[i], visitTime))
+                    objectsInRoute.append(schools[i])
+                    #print(schools[i])
+            
+            #the next loop find the as many students that will fit between school i and i+1
+            #students are chosen from all unrouted students that attend schools in the route so far
+            proceed = True
+            infiniteLoopCheck = 0
+            while (proceed and infiniteLoopCheck < 10):                                   
+                potentialStudents = []
+                #find all unrouted students that attend schools that have been added to the route
+                for j in range(i+1):
+                    #go through every student that attends the selected school
+                    for student in studentsInSchools[j]:
+                        #print(student, student.school)
+                        #add to list of potentially routable students if they are not yet routed
+                        if student not in objectsInRoute:
+                            potentialStudents.append(student)
+                #find the student with the minimum additional time between the end of the route and the next school to be added
+                minStudent = potentialStudents[0]
+                minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][potentialStudents[0].distanceMatrixPosition] + dataMatrix[potentialStudents[0].distanceMatrixPosition][schools[i+1].distanceMatrixPosition]
+                for student in potentialStudents:
+                    if (dataMatrix[route[len(route)-1].element.distanceMatrixPosition][student.distanceMatrixPosition] + dataMatrix[student.distanceMatrixPosition][schools[i+1].distanceMatrixPosition] < minValue):
+                        minStudent = student
+                        minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][student.distanceMatrixPosition] + dataMatrix[student.distanceMatrixPosition][schools[i+1].distanceMatrixPosition]
+
+                #check to see if this student can be added to the route
+                endOfRouteVisitTime = route[len(route)-1].time
+                schoolStartTime = schools[i+1].endTime
+                travelTime = Time.Time(minValue)
+                if (endOfRouteVisitTime + travelTime < schoolStartTime + window):
+                    visitTime = endOfRouteVisitTime + Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][minStudent.distanceMatrixPosition])
+                    route.append(Stop.Stop(minStudent, visitTime))
+                    objectsInRoute.append(minStudent)
+                    #print(minStudent)
+                #check to see if the time from the end of the route to the next school will fall in between the drop off window
+                #recalculate the stop time for the end of the route because a student may have been added in the last if statement
+                endOfRouteVisitTime = route[len(route)-1].time
+                timeToNextSchool = endOfRouteVisitTime + Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][schools[i+1].distanceMatrixPosition])
+                if (endOfRouteVisitTime + timeToNextSchool > schoolStartTime):
+                    proceed = False
+                else:
+                    infiniteLoopCheck += 1
+        
+        #add the last school, but check if the last school is also the first
+        if (len(schools) == 1):
+            route.append(Stop.Stop(schools[0], schools[0].endTime))
+            objectsInRoute.append(schools[0])
+        else:
+            endOfRouteVisitTime = route[len(route)-1].time
+            visitTime = endOfRouteVisitTime + Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][schools[len(schools)-1].distanceMatrixPosition])
+            route.append(Stop.Stop(schools[len(schools)-1], visitTime))
+            objectsInRoute.append(schools[len(schools)-1])
+        
+        #loop until all student have been added to the route
+        while (len(route) < len(self.schools) + len(self.students)):
+            
+            #find all the unrouted students
+            potentialStudents = []
+            for student in self.students:
+                #add to list of potentially routable students if they are not yet routed
+                if student not in objectsInRoute:
+                    potentialStudents.append(student)
+            
+            #find the unrouted student that is closest to the end of the route
+            minStudent = potentialStudents[0]
+            minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][potentialStudents[0].distanceMatrixPosition]
+            for student in potentialStudents:
+                if (dataMatrix[route[len(route)-1].element.distanceMatrixPosition][student.distanceMatrixPosition]):
+                    minStudent = student
+                    minValue = dataMatrix[route[len(route)-1].element.distanceMatrixPosition][student.distanceMatrixPosition]
+                    
+            #add the student to the route
+            endOfRouteVisitTime = route[len(route)-1].time
+            visitTime = endOfRouteVisitTime + Time.Time(dataMatrix[route[len(route)-1].element.distanceMatrixPosition][minStudent.distanceMatrixPosition])
+            route.append(Stop.Stop(minStudent, visitTime))
+            objectsInRoute.append(minStudent)
+            #print(minStudent)
+            
+        #add final route to the route's object
+        self.stopsInOrderPm = objectsInRoute.copy()
+        self.generateRouteTimesDropOff(dataMatrix)
+
+
+        #===============start optimization process=================================
+        #find the fist school in the route
+        startSchools = 0
+        for stop in self.stopsInOrderAm:
+            if type(stop) == School.School:
+                startSchools = self.stopsInOrderAm.index(stop)
+                break
+        #find the fist school in the route
+        endSchools = 0
+        for stop in self.stopsInOrderPm:
+            if type(stop) == School.School:
+                endSchools = self.stopsInOrderPm.index(stop)
+        endSchools += 1
+        
+        #begin swaps
+        for i in range(500):
+            #create copy of route to revert back to
+            oldRouteAm = deepcopy(self.stopsInOrderAm)
+            oldRoutePm = deepcopy(self.stopsInOrderPm)
+            #generate route times for the old routes
+            self.generateRouteTimes(dataMatrix)
+            self.distanceStats(dataMatrix)
+            oldMetric = self.mean
+            #create new route
+            newRouteAm = deepcopy(self.stopsInOrderAm)
+            newRoutePm = deepcopy(self.stopsInOrderPm)
+            #generate the indexes to swap for drop off route
+            indexes = range(startSchools)
+            sample = random.sample(indexes, 2)
+            #swap pick up route kids
+            index1 = sample[0]
+            index2 = sample[1]
+            temp = newRouteAm[index1]
+            newRouteAm[index1] = newRouteAm[index2]
+            newRouteAm[index2] = temp
+            #generate the indexes to swap for pick up route
+            indexes = range(endSchools, len(self.stopsInOrderPm))
+            sample = random.sample(indexes, 2)
+            #swap dropoff route kids
+            index1 = sample[0]
+            index2 = sample[1]
+            temp = newRoutePm[index1]
+            newRoutePm[index1] = newRoutePm[index2]
+            newRoutePm[index2] = temp
+            
+            #save the new route to the route object in order to measure the time
+            self.stopsInOrderAm = newRouteAm
+            self.stopsInOrderPm = newRoutePm
             self.generateRouteTimes(dataMatrix)
             self.distanceStats(dataMatrix)
             newMetric = self.mean
             #if the old route was better, revert to the old route
             if (oldMetric < newMetric):
-                self.stopsInOrder = deepcopy(oldRoute)
+                self.stopsInOrderAm = deepcopy(oldRouteAm)
+                self.stopsInOrderPm = deepcopy(oldRoutePm)
             
             
                 
         
         
         
-    def generateRouteTimes(self, distMatrix):
-        self.busTimes = []
-        lastStop = self.stopsInOrder[-1]
+    def generateRouteTimesPickUp(self, distMatrix):
+        self.busPickUpTimes = []
+        lastStop = self.stopsInOrderAm[-1]
         curTime = lastStop.startTime - Time.Time("0:10")
-        idx = self.stopsInOrder.index(lastStop)
-        self.busTimes.insert(0,curTime)
+        idx = self.stopsInOrderAm.index(lastStop)
+        self.busPickUpTimes.insert(0,curTime)
         #create preliminary route times
         while idx > 0:
-            duration = distMatrix[self.stopsInOrder[idx-1].distanceMatrixPosition][self.stopsInOrder[idx].distanceMatrixPosition]
+            duration = distMatrix[self.stopsInOrderAm[idx-1].distanceMatrixPosition][self.stopsInOrderAm[idx].distanceMatrixPosition]
             durationTime = Time.Time(duration)
             curTime = curTime-durationTime
-            if self.stopsInOrder[idx-1] in self.schools:
-                if curTime>self.stopsInOrder[idx-1].startTime:
-                    curTime = self.stopsInOrder[idx-1].startTime
-            self.busTimes.insert(0,curTime)
+            if self.stopsInOrderAm[idx-1] in self.schools:
+                if curTime>self.stopsInOrderAm[idx-1].startTime:
+                    curTime = self.stopsInOrderAm[idx-1].startTime
+            self.busPickUpTimes.insert(0,curTime)
             idx -= 1
 
+    def generateRouteTimesDropOff(self, distMatrix):
+        self.busDropOffTimes = []
+        firstStop = self.stopsInOrderPm[0]
+        curTime = firstStop.endTime
+        idx = 0
+        self.busDropOffTimes.append(curTime)
+        #create preliminary route times
+        while idx < len(self.stopsInOrderPm)-1:
+            duration = distMatrix[self.stopsInOrderPm[idx].distanceMatrixPosition][self.stopsInOrderPm[idx+1].distanceMatrixPosition]
+            durationTime = Time.Time(duration)
+            curTime = curTime+durationTime
+            if self.stopsInOrderPm[idx] in self.schools:
+                if curTime<self.stopsInOrderPm[idx].endTime:
+                    curTime = self.stopsInOrderPm[idx].endTime
+            self.busDropOffTimes.append(curTime)
+            idx += 1
 
-
+    def generateRouteTimes(self, distanceMatrix):
+        self.generateRouteTimesPickUp(distanceMatrix)
+        self.generateRouteTimesDropOff(distanceMatrix)
 
 
 
