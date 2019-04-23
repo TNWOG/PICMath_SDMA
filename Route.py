@@ -570,39 +570,7 @@ class Route:
         #add final route to the route's object
         self.stopsInOrderAm = objectsInRoute.copy()
         self.generateRouteTimesPickUp(dataMatrix)
-        #find the fist school in the route
-        startSchools = 0
-        for stop in self.stopsInOrderAm:
-            if type(stop) == School.School:
-                startSchools = self.stopsInOrderAm.index(stop)
-                break
-        '''#begin swaps
-        for i in range(200):
-            #create copy of route to revert back to 
-            oldRoute = deepcopy(self.stopsInOrderAm)
-            #generate route times for the old routes
-            self.generateRouteTimesPickUp(dataMatrix)
-            self.distanceStats(dataMatrix)
-            oldMetric = self.mean
-            #create new route
-            newRoute = deepcopy(self.stopsInOrderAm)
-            #generate the indexes to swap
-            indexes = range(startSchools)
-            sample = random.sample(indexes, 2)
-            #swap
-            index1 = sample[0]
-            index2 = sample[1]
-            temp = newRoute[index1]
-            newRoute[index1] = newRoute[index2]
-            newRoute[index2] = temp
-            #save the new route to the route object in order to measure the time
-            self.stopsInOrderAm = newRoute
-            self.generateRouteTimesPickUp(dataMatrix)
-            self.distanceStats(dataMatrix)
-            newMetric = self.mean
-            #if the old route was better, revert to the old route
-            if (oldMetric < newMetric):
-                self.stopsInOrderAm = deepcopy(oldRoute)'''
+        
         #=============================PM portion of route=======================
         #declare/define variables
         #the window of time that we can arrive before school starts
